@@ -56,9 +56,8 @@ client.on('messageCreate', async message => {
     return message.channel.send(sayMessage);
   }
 
-  // --- POPRAWIONA KOMENDA !REGULAMIN ---
+  // --- KOMENDA !REGULAMIN (Linkuje do kanału) ---
   if (msg === '!regulamin') {
-    // Szukamy kanału o nazwie "regulamin" na Twoim serwerze
     const regChannel = message.guild.channels.cache.find(ch => ch.name === 'regulamin');
     const channelMention = regChannel ? `<#${regChannel.id}>` : '#regulamin';
 
@@ -74,7 +73,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [regEmbed] });
   }
 
-  // --- MENU !POMOC (Bez literówek) ---
+  // --- MENU !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -91,7 +90,20 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !IP (Wyrównana, bez spacji przy porcie) ---
+  // --- KOMENDA !SOCIAL (Z Twoim linkiem) ---
+  if (msg === '!social' || msg === '!media') {
+    const socialEmbed = new EmbedBuilder()
+      .setColor('#EE82EE')
+      .setTitle('📱 NASZE MEDIA SPOŁECZNOŚCIOWE')
+      .setDescription('Śledź nas, aby być na bieżąco!')
+      .addFields(
+        { name: 'TikTok', value: '[Obserwuj nas!](https://tiktok.com/@kuba06909)', inline: true }
+      )
+      .setFooter({ text: 'Dzięki za wsparcie! ❤️' });
+    return message.reply({ embeds: [socialEmbed] });
+  }
+
+  // --- KOMENDA !IP (Wyrównana) ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -106,7 +118,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- STATYSTYKI SERWERA ---
+  // --- POZOSTAŁE KOMENDY ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
@@ -121,7 +133,6 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [infoEmbed] });
   }
 
-  // --- RESZTA KOMEND ---
   if (msg === '!avatar') {
     const avatarEmbed = new EmbedBuilder().setColor('#ffffff').setTitle(`Avatar: ${message.author.username}`).setImage(message.author.displayAvatarURL({ size: 1024 }));
     return message.reply({ embeds: [avatarEmbed] });
@@ -133,7 +144,6 @@ client.on('messageCreate', async message => {
     return message.reply(`🤔 Wybieram: **${choices[Math.floor(Math.random() * choices.length)]}**!`);
   }
 
-  if (msg === '!social') return message.reply('📱 Znajdziesz nas na TikToku i YouTube!');
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
   if (msg === '!autor') return message.reply('👑 Twórcą bota jest **Sigiemka**.');
   if (msg === '!ping') return message.reply(`🏓 Pong! **${Math.round(client.ws.ping)}ms**`);
