@@ -10,24 +10,24 @@ const client = new Client({
   ],
 });
 
-// Funkcja aktualizująca liczbę osób na Discordzie w statusie
+// Funkcja aktualizująca status na "Społeczność: [liczba]"
 function updateStatus() {
   const guild = client.guilds.cache.first();
   if (guild) {
-    client.user.setActivity(`Ludzi na DC: ${guild.memberCount}`, { 
+    client.user.setActivity(`Społeczność: ${guild.memberCount}`, { 
       type: ActivityType.Watching 
     });
   }
 }
 
 client.once('ready', () => {
-  console.log(`Bot ${client.user.tag} jest online!`);
+  console.log(`Bot ${client.user.tag} jest online i gotowy!`);
   updateStatus();
-  // Odświeżaj licznik co 5 minut
+  // Odświeżanie statusu co 5 minut
   setInterval(updateStatus, 300000); 
 });
 
-// SYSTEM POWITAŃ - upewnij się, że masz kanał o nazwie "witamy"
+// SYSTEM POWITAŃ - bot wyśle wiadomość na kanał o nazwie "witamy"
 client.on('guildMemberAdd', member => {
   const channel = member.guild.channels.cache.find(ch => ch.name === 'witamy' || ch.name === 'powitania');
   if (!channel) return;
@@ -40,7 +40,7 @@ client.on('guildMemberAdd', member => {
     .setTimestamp();
 
   channel.send({ embeds: [welcomeEmbed] });
-  updateStatus(); // Aktualizuj licznik osób natychmiast
+  updateStatus(); // Natychmiastowa aktualizacja licznika społeczności
 });
 
 client.on('messageCreate', async message => {
@@ -48,7 +48,7 @@ client.on('messageCreate', async message => {
 
   const msg = message.content.toLowerCase();
 
-  // --- ELEGANCKA KOMENDA !POMOC (Wersja rozbudowana) ---
+  // --- ELEGANCKA KOMENDA !POMOC (Wersja z obrazka) ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -93,32 +93,27 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- POZOSTAŁE KOMENDY ---
+  // --- KOMENDA !DC ---
   if (msg === '!dc') {
     return message.reply('🔗 **Oficjalne zaproszenie:** https://discord.gg/awEJcWmM');
   }
 
+  // --- KOMENDA !AUTOR ---
   if (msg === '!autor') {
     return message.reply('👑 Twórcą bota jest **Sigiemka**.');
   }
 
+  // --- KOMENDA !REGULAMIN ---
   if (msg === '!regulamin') {
     return message.reply('📜 **REGULAMIN:** Nie czituj, nie kradnij, szanuj innych i zakaz reklam!');
   }
 
+  // --- KOMENDA !PING ---
   if (msg === '!ping') {
     return message.reply(`🏓 Pong! Opóźnienie: **${Math.round(client.ws.ping)}ms**`);
   }
 
-  if (msg === '!kostka') {
-    return message.reply(`🎲 Wypadło: **${Math.floor(Math.random() * 6) + 1}**`);
-  }
-
-  if (msg === '!moneta') {
-    return message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
-  }
-
-  // --- KOMENDA OGŁOSZENIA ---
+  // --- KOMENDA !OGLOSZENIE ---
   if (msg.startsWith('!ogloszenie ')) {
     const text = message.content.slice(12);
     const ann = new EmbedBuilder()
