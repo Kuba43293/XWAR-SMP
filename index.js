@@ -2,21 +2,21 @@ require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-    ],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
 client.once('ready', () => {
-    console.log(`Zalogowano jako ${client.user.tag}! Bot XWAR SMP jest ONLINE.`);
+  console.log(`Zalogowano jako ${client.user.tag}! Bot XWAR SMP jest ONLINE.`);
 });
 
 client.on('messageCreate', message => {
-    if (message.content === '!hej') {
-        message.reply('Siemanko! Tu bot serwera **XWAR SMP**. Wszystko działa!');
-    }
+  if (message.content === '!hej') {
+    message.reply('Siemanko! Tu bot serwera **XWAR SMP**. Wszystko działa!');
+  }
 });
 
-client.login(process.env.MTQ3MTU0MjA1NDIxODYyOTE0MA.GJbpVb.OIPE9jS6R9kgpW23i-DiNBToN1aFThB6MXnARs);
+client.login(process.env.MTQ3MTU0MjA1NDIxODYyOTE0MA.GVBq_n.dSqkufIsoLdpQzVW9p0mLiQyg1BF3aGMkmKu7k);
