@@ -46,7 +46,7 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const msg = message.content.toLowerCase();
 
-  // --- KOMENDA !SAY (Tylko dla osób z uprawnieniami) ---
+  // --- KOMENDA !SAY (Wysyłanie jako bot) ---
   if (msg.startsWith('!say ')) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
         return message.reply("❌ Nie masz uprawnień!");
@@ -56,21 +56,25 @@ client.on('messageCreate', async message => {
     return message.channel.send(sayMessage);
   }
 
-  // --- KOMENDA !REGULAMIN (Zaktualizowana o link do kanału) ---
+  // --- POPRAWIONA KOMENDA !REGULAMIN ---
   if (msg === '!regulamin') {
+    // Szukamy kanału o nazwie "regulamin" na Twoim serwerze
+    const regChannel = message.guild.channels.cache.find(ch => ch.name === 'regulamin');
+    const channelMention = regChannel ? `<#${regChannel.id}>` : '#regulamin';
+
     const regEmbed = new EmbedBuilder()
       .setColor('#FF0000')
       .setTitle('📜 REGULAMIN SERWERA XWAR SMP')
-      .setDescription('Aby zapoznać się z pełną treścią zasad, odwiedź kanał <#1337426177894580234>') // Pamiętaj, aby ID się zgadzało!
+      .setDescription(`Aby zapoznać się z pełną treścią zasad, odwiedź kanał ${channelMention}`)
       .addFields(
-        { name: '🚀 Główne zasady:', value: '• Zakaz czitowania i używania wspomagaczy\n• Zakaz griefowania (chyba że regulamin sezonu mówi inaczej)\n• Szanuj innych graczy i administrację\n• Zakaz reklamowania innych serwerów' }
+        { name: '🚀 Główne zasady:', value: '• Zakaz czitowania i używania wspomagaczy\n• Zakaz griefowania i niszczenia baz\n• Szanuj innych graczy i administrację\n• Zakaz reklamowania innych serwerów' }
       )
-      .setFooter({ text: 'Nieznajomość regulaminu nie zwalnia z jego przestrzegania!' });
+      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() });
 
     return message.reply({ embeds: [regEmbed] });
   }
 
-  // --- MENU !POMOC ---
+  // --- MENU !POMOC (Bez literówek) ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -87,7 +91,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !IP (Wyrównana bez spacji) ---
+  // --- KOMENDA !IP (Wyrównana, bez spacji przy porcie) ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -102,7 +106,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- RESZTA KOMEND ---
+  // --- STATYSTYKI SERWERA ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
@@ -117,19 +121,16 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [infoEmbed] });
   }
 
+  // --- RESZTA KOMEND ---
   if (msg === '!avatar') {
-    const avatarEmbed = new EmbedBuilder()
-      .setColor('#ffffff')
-      .setTitle(`Avatar użytkownika ${message.author.username}`)
-      .setImage(message.author.displayAvatarURL({ size: 1024 }));
+    const avatarEmbed = new EmbedBuilder().setColor('#ffffff').setTitle(`Avatar: ${message.author.username}`).setImage(message.author.displayAvatarURL({ size: 1024 }));
     return message.reply({ embeds: [avatarEmbed] });
   }
 
   if (msg.startsWith('!losuj ')) {
     const choices = message.content.slice(7).split(' ');
-    if (choices.length < 2) return message.reply('❌ Podaj dwie opcje po spacji!');
-    const picked = choices[Math.floor(Math.random() * choices.length)];
-    return message.reply(`🤔 Wybieram: **${picked}**!`);
+    if (choices.length < 2) return message.reply('❌ Podaj min. dwie opcje!');
+    return message.reply(`🤔 Wybieram: **${choices[Math.floor(Math.random() * choices.length)]}**!`);
   }
 
   if (msg === '!social') return message.reply('📱 Znajdziesz nas na TikToku i YouTube!');
