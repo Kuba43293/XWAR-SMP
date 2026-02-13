@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, ActivityType, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, ActivityType, EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -46,6 +46,17 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const msg = message.content.toLowerCase();
 
+  // --- KOMENDA !SAY (Dla Ciebie) ---
+  if (msg.startsWith('!say ')) {
+    // Sprawdza, czy osoba ma uprawnienia do zarządzania wiadomościami
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+        return message.reply("❌ Nie masz uprawnień do używania tej komendy!");
+    }
+    const sayMessage = message.content.slice(5);
+    await message.delete(); // Usuwa Twoją wiadomość !say
+    return message.channel.send(sayMessage); // Wysyła sam tekst przez bota
+  }
+
   // --- POPRAWIONE MENU !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
@@ -54,18 +65,9 @@ client.on('messageCreate', async message => {
       .setThumbnail(client.user.displayAvatarURL())
       .setDescription('Witaj! Oto lista wszystkich funkcji bota:')
       .addFields(
-        { 
-            name: '📍 Główne informacje', 
-            value: '> **!ip** - Dane serwera\n> **!dc** - Link Discord\n> **!regulamin** - Zasady\n> **!social** - Nasze media' 
-        },
-        { 
-            name: '🎮 Gry i Fun', 
-            value: '> **!kostka** - Rzut kostką\n> **!moneta** - Orzeł/Reszka\n> **!losuj [a] [b]** - Wybór opcji\n> **!avatar** - Twój awatar' 
-        },
-        { 
-            name: '📊 Statystyki i Admin', 
-            value: '> **!serwer_info** - Dane o DC\n> **!ping** - Status bota\n> **!ogloszenie [tekst]** - Robi ogłoszenie' 
-        }
+        { name: '📍 Główne informacje', value: '> **!ip** - Dane serwera\n> **!dc** - Link Discord\n> **!regulamin** - Zasady\n> **!social** - Nasze media' },
+        { name: '🎮 Gry i Fun', value: '> **!kostka** - Rzut kostką\n> **!moneta** - Orzeł/Reszka\n> **!losuj [a] [b]** - Wybór opcji\n> **!avatar** - Twój awatar' },
+        { name: '📊 Statystyki i Admin', value: '> **!serwer_info** - Dane o DC\n> **!ping** - Status bota\n> **!ogloszenie [tekst]** - Robi ogłoszenie\n> **!say [tekst]** - Bot mówi za Ciebie' }
       )
       .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
@@ -73,7 +75,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !IP (ADRES I PORT IDEALNIE RÓWNO) ---
+  // --- KOMENDA !IP (Wyrównana) ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -88,7 +90,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- KOMENDA !SERWER_INFO ---
+  // --- POZOSTAŁE KOMENDY ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
@@ -103,7 +105,6 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [infoEmbed] });
   }
 
-  // --- KOMENDA !AVATAR ---
   if (msg === '!avatar') {
     const avatarEmbed = new EmbedBuilder()
       .setColor('#ffffff')
@@ -112,7 +113,6 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [avatarEmbed] });
   }
 
-  // --- KOMENDA !LOSUJ ---
   if (msg.startsWith('!losuj ')) {
     const choices = message.content.slice(7).split(' ');
     if (choices.length < 2) return message.reply('❌ Podaj dwie opcje po spacji, np. `!losuj tak nie`');
@@ -120,7 +120,6 @@ client.on('messageCreate', async message => {
     return message.reply(`🤔 Wybieram: **${picked}**!`);
   }
 
-  // --- RESZTA KOMEND ---
   if (msg === '!social') return message.reply('📱 Znajdziesz nas na TikToku i YouTube!');
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
   if (msg === '!autor') return message.reply('👑 Twórcą bota jest **Sigiemka**.');
