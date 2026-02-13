@@ -10,11 +10,11 @@ const client = new Client({
   ],
 });
 
-// Funkcja aktualizująca status na "Społeczność: [liczba]"
+// Aktualizacja statusu: Ludzi na DC: 20
 function updateStatus() {
   const guild = client.guilds.cache.first();
   if (guild) {
-    client.user.setActivity(`Społeczność: ${guild.memberCount}`, { 
+    client.user.setActivity(`Ludzi na DC: ${guild.memberCount}`, { 
       type: ActivityType.Watching 
     });
   }
@@ -26,7 +26,7 @@ client.once('ready', () => {
   setInterval(updateStatus, 300000); 
 });
 
-// SYSTEM POWITAŃ
+// System powitań
 client.on('guildMemberAdd', member => {
   const channel = member.guild.channels.cache.find(ch => ch.name === 'witamy' || ch.name === 'powitania');
   if (!channel) return;
@@ -48,15 +48,67 @@ client.on('messageCreate', async message => {
 
   // --- KOMENDA !SAY (Wysyłanie jako bot) ---
   if (msg.startsWith('!say ')) {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-        return message.reply("❌ Nie masz uprawnień!");
-    }
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
     const sayMessage = message.content.slice(5);
     await message.delete();
     return message.channel.send(sayMessage);
   }
 
-  // --- KOMENDA !REGULAMIN (Z poprawionym linkowaniem kanału) ---
+  // --- NAPRAWIONE MENU !POMOC (Układ pionowy jak na 1 zdjęciu) ---
+  if (msg === '!pomoc') {
+    const helpEmbed = new EmbedBuilder()
+      .setColor('#FFD700')
+      .setTitle('✨ CENTRUM POMOCY XWAR SMP ✨')
+      .setThumbnail(client.user.displayAvatarURL())
+      .addFields(
+        { 
+          name: '📍 Główne informacje', 
+          value: '!ip - Dane serwera\n!dc - Link Discord\n!regulamin - Zasady\n!social - Nasze media' 
+        },
+        { 
+          name: '🎮 Gry i Fun', 
+          value: '!kostka - Rzut kostką\n!moneta - Orzeł/Reszka\n!losuj [a] [b] - Wybór opcji\n!avatar - Twój awatar' 
+        },
+        { 
+          name: '📊 Statystyki i Admin', 
+          value: '!serwer_info - Dane o DC\n!ping - Status bota\n!ogloszenie [tekst] - Robi ogłoszenie\n!say [tekst] - Bot mówi za Ciebie' 
+        }
+      )
+      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
+      .setTimestamp();
+
+    return message.reply({ embeds: [helpEmbed] });
+  }
+
+  // --- KOMENDA !IP (Wyrównany port - bez spacji) ---
+  if (msg === '!ip' || msg === '!serwer') {
+    const ipEmbed = new EmbedBuilder()
+      .setColor('#FFD700')
+      .setTitle('🎮 SERWER XWAR SMP')
+      .addFields(
+        { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
+        { name: '🔌PORT', value: '`34899`', inline: true }, // Usunięte spacje
+        { name: '🛠️ WERSJA', value: '`1.21.11`', inline: false }
+      )
+      .setFooter({ text: 'Dołącz do gry! 🔥' });
+
+    return message.reply({ embeds: [ipEmbed] });
+  }
+
+  // --- KOMENDA !SOCIAL (Klikalny link TikTok) ---
+  if (msg === '!social') {
+    const socialEmbed = new EmbedBuilder()
+      .setColor('#EE82EE')
+      .setTitle('📱 NASZE MEDIA SPOŁECZNOŚCIOWE')
+      .setDescription('Śledź nas, aby być na bieżąco!')
+      .addFields(
+        { name: 'TikTok', value: '[Obserwuj nas!](https://www.tiktok.com/@kuba06909)', inline: true }
+      )
+      .setFooter({ text: 'Dzięki za wsparcie! ❤️' });
+    return message.reply({ embeds: [socialEmbed] });
+  }
+
+  // --- KOMENDA !REGULAMIN (Naprawiony link kanału) ---
   if (msg === '!regulamin') {
     const regChannel = message.guild.channels.cache.find(ch => ch.name === 'regulamin');
     const channelMention = regChannel ? `<#${regChannel.id}>` : '#regulamin';
@@ -66,59 +118,14 @@ client.on('messageCreate', async message => {
       .setTitle('📜 REGULAMIN SERWERA XWAR SMP')
       .setDescription(`Aby zapoznać się z pełną treścią zasad, odwiedź kanał ${channelMention}`)
       .addFields(
-        { name: '🚀 Główne zasady:', value: '• Zakaz czitowania i używania wspomagaczy\n• Zakaz griefowania i niszczenia baz\n• Szanuj innych graczy i administrację\n• Zakaz reklamowania innych serwerów' }
+        { name: '🚀 Główne zasady:', value: '• Zakaz czitowania\n• Zakaz griefowania\n• Szanuj innych graczy' }
       )
       .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() });
 
     return message.reply({ embeds: [regEmbed] });
   }
 
-  // --- KOMENDA !SOCIAL (Z klikalnym linkiem do TikToka) ---
-  if (msg === '!social' || msg === '!media') {
-    const socialEmbed = new EmbedBuilder()
-      .setColor('#EE82EE')
-      .setTitle('📱 NASZE MEDIA SPOŁECZNOŚCIOWE')
-      .setDescription('Śledź nas, aby być na bieżąco!')
-      .addFields(
-        { name: 'TikTok', value: '[Kliknij tutaj, aby zaobserwować!](https://www.tiktok.com/@kuba06909)', inline: true }
-      )
-      .setFooter({ text: 'Dzięki za wsparcie! ❤️' });
-    return message.reply({ embeds: [socialEmbed] });
-  }
-
-  // --- KOMENDA !IP (Wyrównana, bez zbędnych spacji przy porcie) ---
-  if (msg === '!ip' || msg === '!serwer') {
-    const ipEmbed = new EmbedBuilder()
-      .setColor('#FFD700')
-      .setTitle('🎮 SERWER XWAR SMP')
-      .addFields(
-        { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
-        { name: '🔌PORT', value: '`34899`', inline: true },
-        { name: '🛠️ WERSJA', value: '`1.21.11`', inline: false }
-      )
-      .setFooter({ text: 'Dołącz do gry! 🔥' });
-
-    return message.reply({ embeds: [ipEmbed] });
-  }
-
-  // --- MENU !POMOC ---
-  if (msg === '!pomoc') {
-    const helpEmbed = new EmbedBuilder()
-      .setColor('#FFD700')
-      .setTitle('✨ CENTRUM POMOCY XWAR SMP ✨')
-      .setThumbnail(client.user.displayAvatarURL())
-      .addFields(
-        { name: '📍 Główne informacje', value: '> **!ip**, **!dc**, **!regulamin**, **!social**' },
-        { name: '🎮 Gry i Fun', value: '> **!kostka**, **!moneta**, **!losuj**, **!avatar**' },
-        { name: '📊 Admin', value: '> **!ogloszenie**, **!say**, **!serwer_info**' }
-      )
-      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
-      .setTimestamp();
-
-    return message.reply({ embeds: [helpEmbed] });
-  }
-
-  // --- KOMENDA !SERWER_INFO ---
+  // --- POZOSTAŁE KOMENDY ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
@@ -126,33 +133,20 @@ client.on('messageCreate', async message => {
       .setTitle(`📊 INFORMACJE O ${guild.name}`)
       .setThumbnail(guild.iconURL())
       .addFields(
-        { name: 'Data powstania:', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: true },
         { name: 'Właściciel:', value: `<@${guild.ownerId}>`, inline: true },
         { name: 'Liczba członków:', value: `${guild.memberCount}`, inline: true }
       );
     return message.reply({ embeds: [infoEmbed] });
   }
 
-  // --- POZOSTAŁE FUNKCJE FUN ---
-  if (msg === '!avatar') {
-    const avatarEmbed = new EmbedBuilder().setColor('#ffffff').setTitle(`Avatar użytkownika ${message.author.username}`).setImage(message.author.displayAvatarURL({ size: 1024 }));
-    return message.reply({ embeds: [avatarEmbed] });
-  }
-
-  if (msg.startsWith('!losuj ')) {
-    const choices = message.content.slice(7).split(' ');
-    if (choices.length < 2) return message.reply('❌ Podaj przynajmniej dwie opcje!');
-    return message.reply(`🤔 Wybieram: **${choices[Math.floor(Math.random() * choices.length)]}**!`);
-  }
-
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
-  if (msg === '!ping') return message.reply(`🏓 Pong! Opóźnienie: **${Math.round(client.ws.ping)}ms**`);
+  if (msg === '!ping') return message.reply(`🏓 Pong! **${Math.round(client.ws.ping)}ms**`);
   if (msg === '!kostka') return message.reply(`🎲 Wypadło: **${Math.floor(Math.random() * 6) + 1}**`);
   if (msg === '!moneta') return message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
 
   if (msg.startsWith('!ogloszenie ')) {
     const text = message.content.slice(12);
-    const ann = new EmbedBuilder().setColor('#FF0000').setTitle('📢 OGŁOSZENIE').setDescription(text).setTimestamp();
+    const ann = new EmbedBuilder().setColor('#FF0000').setTitle('📢 OGŁOSZENIE').setDescription(text);
     await message.channel.send({ embeds: [ann] });
     return message.delete();
   }
