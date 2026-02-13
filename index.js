@@ -1,3 +1,9 @@
+Masz rację, mój błąd! Skoro wyszła już wersja 1.21.11, to musimy to natychmiast poprawić w kodzie, żeby gracze nie próbowali wchodzić na złej wersji.
+
+Oto zaktualizowany kod z poprawioną wersją oraz wszystkimi ładnymi ramkami (Embedami).
+
+Kod do wklejenia w index.js:
+JavaScript
 require('dotenv').config();
 const { Client, GatewayIntentBits, ActivityType, EmbedBuilder } = require('discord.js');
 
@@ -19,72 +25,76 @@ client.on('messageCreate', message => {
 
   const msg = message.content.toLowerCase();
 
-  // --- KOMENDA !POMOC (Wersja Premium) ---
+  // --- KOMENDA !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
-      .setColor('#FFD700') // Złoty kolor paska
-      .setTitle('🤖 CENTRUM POMOCY XWAR SMP')
+      .setColor('#FFD700')
+      .setTitle('✨ CENTRUM POMOCY XWAR SMP ✨')
       .setThumbnail(client.user.displayAvatarURL())
-      .setDescription('Oto lista wszystkich dostępnych funkcji bota:')
+      .setDescription('Witaj! Oto co potrafię zrobić na serwerze:')
       .addFields(
-        { name: '📍 Główne informacje', value: '`!ip` - Dane serwera\n`!dc` - Link Discord\n`!regulamin` - Zasady' },
-        { name: '🎮 Rozrywka', value: '`!kostka` - Rzut kostką\n`!moneta` - Orzeł/Reszka\n`!ping` - Status bota' },
-        { name: '👑 Administracja', value: '`!autor` - Twórca bota\n`!ogloszenie [tekst]` - Robi ogłoszenie' }
+        { name: '📋 Informacje', value: '`!ip` - Dane serwera Minecraft\n`!dc` - Link do Discorda\n`!regulamin` - Nasze zasady' },
+        { name: '🎲 Zabawa', value: '`!kostka` - Rzut kostką\n`!moneta` - Orzeł czy reszka' },
+        { name: '🛠️ Narzędzia', value: '`!autor` - Kto stworzył bota\n`!ping` - Opóźnienie bota' },
+        { name: '📢 Administracja', value: '`!ogloszenie [tekst]` - Tworzy ramkę ogłoszenia' }
       )
-      .setFooter({ text: 'XWAR SMP - Najlepszy serwer survival!', iconURL: client.user.displayAvatarURL() })
+      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
 
     message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !IP (Ładna ramka) ---
+  // --- KOMENDA !IP (Wersja 1.21.11) ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
-      .setTitle('🎮 DOŁĄCZ DO GRY NA XWAR SMP')
+      .setTitle('🎮 DOŁĄCZ DO XWAR SMP!')
+      .setDescription('Czekamy na Ciebie w świecie Minecraft!')
       .addFields(
         { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
-        { name: '🔌 PORT', value: '`34899`', inline: true }
+        { name: '🔌 PORT', value: '`34899`', inline: true },
+        { name: '🛠️ WERSJA', value: '`1.21.11`', inline: false }
       )
-      .setImage('https://i.imgur.com/8N4R7yS.png') // Możesz tu wstawić link do screena z gry
-      .setFooter({ text: 'Czekamy na Ciebie!' });
+      .setFooter({ text: 'Zasuwaj budować bazę! 🔥' });
 
     message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- KOMENDA !AUTOR (Z Twoim zdjęciem) ---
+  // --- KOMENDA !AUTOR ---
   if (msg === '!autor') {
     const authorEmbed = new EmbedBuilder()
-      .setColor('#00ff00')
+      .setColor('#00FF00')
       .setTitle('👑 TWÓRCA BOTA')
-      .setDescription('Właścicielem i pomysłodawcą bota jest **Sigiemka**.')
-      .setThumbnail(message.guild.ownerId === message.author.id ? message.author.displayAvatarURL() : null)
-      .setFooter({ text: 'Dobra robota, Szefie!' });
+      .setDescription('Właścicielem i mózgiem operacji jest **Sigiemka**.')
+      .setFooter({ text: 'Pełen szacun! 🫡' });
 
     message.reply({ embeds: [authorEmbed] });
   }
 
-  // --- RESZTA KOMEND ---
+  // --- RESZTA FUNKCJI ---
   if (msg === '!dc' || msg === '!discord') {
-    message.reply('🔗 **Nasz Discord:** https://discord.gg/awEJcWmM');
+    message.reply('🔗 **Oficjalne zaproszenie:** https://discord.gg/awEJcWmM');
   }
 
   if (msg === '!regulamin') {
-    message.reply('📜 **Zasady:** Nie czituj, nie kradnij, szanuj innych i baw się dobrze!');
+    message.reply('📜 **REGULAMIN:** Nie czituj, nie kradnij, szanuj innych i zakaz reklam!');
+  }
+
+  if (msg === '!ping') {
+    message.reply(`🏓 Pong! Opóźnienie: **${Math.round(client.ws.ping)}ms**`);
   }
 
   if (msg === '!kostka') {
-    message.reply(`🎲 Wynik: **${Math.floor(Math.random() * 6) + 1}**`);
+    message.reply(`🎲 Wypadło: **${Math.floor(Math.random() * 6) + 1}**`);
   }
 
   if (msg === '!moneta') {
-    message.reply(`🪙 Wypadło: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
+    message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
   }
 
-  // Komenda do ogłoszeń
   if (msg.startsWith('!ogloszenie ')) {
     const text = message.content.slice(12);
-    const ann = new EmbedBuilder().setColor('#ff0000').setTitle('📢 OGŁOSZENIE').setDescription(text).setTimestamp();
+    const ann = new EmbedBuilder().setColor('#FF0000').setTitle('📢 OGŁOSZENIE').setDescription(text).setTimestamp();
     message.channel.send({ embeds: [ann] });
     message.delete();
   }
