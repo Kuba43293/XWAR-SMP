@@ -46,7 +46,7 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const msg = message.content.toLowerCase();
 
-  // --- ELEGANCKA KOMENDA !POMOC ---
+  // --- POPRAWIONE MENU !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -67,14 +67,28 @@ client.on('messageCreate', async message => {
             value: '> **!serwer_info** - Dane o DC\n> **!ping** - Status bota\n> **!ogloszenie [tekst]** - Robi ogłoszenie' 
         }
       )
-      // TUTAJ NAPRAWIONO LITERÓWKĘ:
       .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
 
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !SERWER_INFO ---
+  // --- KOMENDA !IP (Z WERSJĄ 1.21.11) ---
+  if (msg === '!ip' || msg === '!serwer') {
+    const ipEmbed = new EmbedBuilder()
+      .setColor('#FFD700')
+      .setTitle('🎮 SERWER XWAR SMP')
+      .addFields(
+        { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
+        { name: '🔌 PORT', value: '`34899`', inline: true },
+        { name: '🛠️ WERSJA', value: '`1.21.11`', inline: false }
+      )
+      .setFooter({ text: 'Dołącz do gry! 🔥' });
+
+    return message.reply({ embeds: [ipEmbed] });
+  }
+
+  // --- NOWA KOMENDA !SERWER_INFO ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
@@ -101,28 +115,16 @@ client.on('messageCreate', async message => {
   // --- KOMENDA !LOSUJ ---
   if (msg.startsWith('!losuj ')) {
     const choices = message.content.slice(7).split(' ');
-    if (choices.length < 2) return message.reply('❌ Podaj dwie opcje po spacji, np. `!losuj pizza burger`');
+    if (choices.length < 2) return message.reply('❌ Podaj dwie opcje po spacji, np. `!losuj tak nie`');
     const picked = choices[Math.floor(Math.random() * choices.length)];
     return message.reply(`🤔 Wybieram: **${picked}**!`);
   }
 
-  // --- KOMENDA !IP ---
-  if (msg === '!ip' || msg === '!serwer') {
-    const ipEmbed = new EmbedBuilder()
-      .setColor('#FFD700')
-      .setTitle('🎮 SERWER XWAR SMP')
-      .addFields(
-        { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
-        { name: '🔌 PORT', value: '`34899`', inline: true },
-        { name: '🛠️ WERSJA', value: '`1.21.11`', inline: false }
-      );
-    return message.reply({ embeds: [ipEmbed] });
-  }
-
+  // --- RESZTA KOMEND ---
   if (msg === '!social') return message.reply('📱 Znajdziesz nas na TikToku i YouTube!');
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
   if (msg === '!autor') return message.reply('👑 Twórcą bota jest **Sigiemka**.');
-  if (msg === '!regulamin') return message.reply('📜 Nie czituj, nie kradnij i szanuj innych graczy!');
+  if (msg === '!regulamin') return message.reply('📜 Nie czituj i szanuj innych graczy!');
   if (msg === '!ping') return message.reply(`🏓 Pong! Opóźnienie: **${Math.round(client.ws.ping)}ms**`);
   if (msg === '!kostka') return message.reply(`🎲 Wypadło: **${Math.floor(Math.random() * 6) + 1}**`);
   if (msg === '!moneta') return message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
