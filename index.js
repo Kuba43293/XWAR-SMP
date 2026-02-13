@@ -46,7 +46,7 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const msg = message.content.toLowerCase();
 
-  // --- KOMENDA !SAY ---
+  // --- KOMENDA !SAY (Wysyłanie jako bot) ---
   if (msg.startsWith('!say ')) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
         return message.reply("❌ Nie masz uprawnień!");
@@ -73,7 +73,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [regEmbed] });
   }
 
-  // --- KOMENDA !SOCIAL (Z KLIKALNYM LINKIEM) ---
+  // --- KOMENDA !SOCIAL (Z klikalnym linkiem do TikToka) ---
   if (msg === '!social' || msg === '!media') {
     const socialEmbed = new EmbedBuilder()
       .setColor('#EE82EE')
@@ -86,7 +86,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [socialEmbed] });
   }
 
-  // --- KOMENDA !IP (Bez zbędnych spacji) ---
+  // --- KOMENDA !IP (Wyrównana, bez zbędnych spacji przy porcie) ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -101,7 +101,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- KOMENDA !POMOC (Naprawiona literówka Twoja) ---
+  // --- MENU !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -118,22 +118,41 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- RESZTA KOMEND ---
+  // --- KOMENDA !SERWER_INFO ---
   if (msg === '!serwer_info') {
     const { guild } = message;
-    const infoEmbed = new EmbedBuilder().setColor('#0099ff').setTitle(`📊 INFO: ${guild.name}`).addFields(
-        { name: 'Członkowie:', value: `${guild.memberCount}`, inline: true },
-        { name: 'Właściciel:', value: `<@${guild.ownerId}>`, inline: true }
-    );
+    const infoEmbed = new EmbedBuilder()
+      .setColor('#0099ff')
+      .setTitle(`📊 INFORMACJE O ${guild.name}`)
+      .setThumbnail(guild.iconURL())
+      .addFields(
+        { name: 'Data powstania:', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: true },
+        { name: 'Właściciel:', value: `<@${guild.ownerId}>`, inline: true },
+        { name: 'Liczba członków:', value: `${guild.memberCount}`, inline: true }
+      );
     return message.reply({ embeds: [infoEmbed] });
   }
 
+  // --- POZOSTAŁE FUNKCJE FUN ---
+  if (msg === '!avatar') {
+    const avatarEmbed = new EmbedBuilder().setColor('#ffffff').setTitle(`Avatar użytkownika ${message.author.username}`).setImage(message.author.displayAvatarURL({ size: 1024 }));
+    return message.reply({ embeds: [avatarEmbed] });
+  }
+
+  if (msg.startsWith('!losuj ')) {
+    const choices = message.content.slice(7).split(' ');
+    if (choices.length < 2) return message.reply('❌ Podaj przynajmniej dwie opcje!');
+    return message.reply(`🤔 Wybieram: **${choices[Math.floor(Math.random() * choices.length)]}**!`);
+  }
+
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
-  if (msg === '!ping') return message.reply(`🏓 Pong! **${Math.round(client.ws.ping)}ms**`);
+  if (msg === '!ping') return message.reply(`🏓 Pong! Opóźnienie: **${Math.round(client.ws.ping)}ms**`);
+  if (msg === '!kostka') return message.reply(`🎲 Wypadło: **${Math.floor(Math.random() * 6) + 1}**`);
+  if (msg === '!moneta') return message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
 
   if (msg.startsWith('!ogloszenie ')) {
     const text = message.content.slice(12);
-    const ann = new EmbedBuilder().setColor('#FF0000').setTitle('📢 OGŁOSZENIE').setDescription(text);
+    const ann = new EmbedBuilder().setColor('#FF0000').setTitle('📢 OGŁOSZENIE').setDescription(text).setTimestamp();
     await message.channel.send({ embeds: [ann] });
     return message.delete();
   }
