@@ -18,14 +18,31 @@ client.once('ready', () => {
 client.on('messageCreate', message => {
   if (message.author.bot) return;
 
+  const msg = message.content.toLowerCase();
+
   // Komenda !hej
-  if (message.content === '!hej') {
+  if (msg === '!hej') {
     message.reply('Siemanko! Tu bot serwera **XWAR SMP**. Wszystko działa! ⚔️');
   }
 
-  // Komenda !ip oraz !serwer
-  if (message.content === '!ip' || message.content === '!serwer') {
+  // Komenda !ip / !serwer
+  if (msg === '!ip' || msg === '!serwer') {
     message.reply('🎮 **ADRES SERWERA XWAR SMP** 🎮\n\n🌍 IP: `Xwarsmp.aternos.me` \n🔌 Port: `34899` \n\nZasuwaj do gry! 🔥');
+  }
+
+  // Komenda !regulamin
+  if (msg === '!regulamin' || msg === '!zasady') {
+    message.reply('📜 **REGULAMIN XWAR SMP** 📜\n1. Nie czituj (Ban permanentny).\n2. Nie kradnij i nie griefuj.\n3. Szanuj innych graczy.\n4. Zakaz reklamowania innych serwerów.\n5. Baw się dobrze! \n\nPełny regulamin znajdziesz na odpowiednim kanale.');
+  }
+
+  // Komenda !dc z Twoim linkiem
+  if (msg === '!dc' || msg === '!discord') {
+    message.reply('🔗 **LINK DO DISCORDA** 🔗\nZaproś znajomych: https://discord.gg/awEJcWmM');
+  }
+
+  // Komenda !pomoc - pokazuje wszystkie dostępne komendy
+  if (msg === '!pomoc') {
+    message.reply('🤖 **LISTA KOMEND BOTA XWAR SMP** 🤖\n\n`!ip` - Adres i port serwera\n`!regulamin` - Zasady serwera\n`!dc` - Link do zaproszenia znajomych\n`!hej` - Przywitanie z botem');
   }
 });
 
