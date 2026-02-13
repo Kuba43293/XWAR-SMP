@@ -19,7 +19,7 @@ client.on('messageCreate', message => {
 
   const msg = message.content.toLowerCase();
 
-  // Komenda !hej (bez "Wszystko działa")
+  // Komenda !hej
   if (msg === '!hej') {
     message.reply('Siemanko! Tu bot serwera **XWAR SMP**. ⚔️');
   }
@@ -39,14 +39,31 @@ client.on('messageCreate', message => {
     message.reply('🔗 **LINK DO DISCORDA** 🔗\nZaproś znajomych: https://discord.gg/awEJcWmM');
   }
 
-  // NOWA Komenda !autor
+  // Komenda !autor
   if (msg === '!autor' || msg === '!tworca') {
     message.reply('👑 Autorem i właścicielem tego bota jest **Sigiemka**. Dobra robota!');
   }
 
-  // Komenda !pomoc (zaktualizowana o !autor)
+  // NOWA Komenda !ping
+  if (msg === '!ping') {
+    message.reply(`🏓 Pong! Opóźnienie bota to: **${Math.round(client.ws.ping)}ms**.`);
+  }
+
+  // NOWA Komenda !kostka
+  if (msg === '!kostka') {
+    const wynik = Math.floor(Math.random() * 6) + 1;
+    message.reply(`🎲 Rzuciłeś kostką i wypadło: **${wynik}**!`);
+  }
+
+  // NOWA Komenda !moneta
+  if (msg === '!moneta') {
+    const wynik = Math.random() < 0.5 ? 'Orzeł' : 'Reszka';
+    message.reply(`🪙 Rzuciłeś monetą i wypadło: **${wynik}**!`);
+  }
+
+  // Komenda !pomoc (zaktualizowana)
   if (msg === '!pomoc') {
-    message.reply('🤖 **LISTA KOMEND BOTA XWAR SMP** 🤖\n\n`!ip` - Adres i port serwera\n`!regulamin` - Zasady serwera\n`!dc` - Zaproszenie na Discord\n`!autor` - Zobacz kto stworzył bota\n`!hej` - Przywitanie');
+    message.reply('🤖 **LISTA KOMEND BOTA XWAR SMP** 🤖\n\n`!ip`, `!regulamin`, `!dc`, `!autor`\n`!ping` - Sprawdź lagi bota\n`!kostka`, `!moneta` - Zabawy losowe\n`!hej` - Przywitanie');
   }
 });
 
