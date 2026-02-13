@@ -11,7 +11,6 @@ const client = new Client({
 
 client.once('ready', () => {
   console.log(`Zalogowano jako ${client.user.tag}! Bot XWAR SMP jest ONLINE.`);
-  // Ustawia status bota: "W grze: na XWAR SMP"
   client.user.setActivity('na XWAR SMP', { type: ActivityType.Playing });
 });
 
@@ -20,9 +19,9 @@ client.on('messageCreate', message => {
 
   const msg = message.content.toLowerCase();
 
-  // Komenda !hej
+  // Komenda !hej (bez "Wszystko działa")
   if (msg === '!hej') {
-    message.reply('Siemanko! Tu bot serwera **XWAR SMP**. Wszystko działa! ⚔️');
+    message.reply('Siemanko! Tu bot serwera **XWAR SMP**. ⚔️');
   }
 
   // Komenda !ip / !serwer
@@ -32,17 +31,22 @@ client.on('messageCreate', message => {
 
   // Komenda !regulamin
   if (msg === '!regulamin' || msg === '!zasady') {
-    message.reply('📜 **REGULAMIN XWAR SMP** 📜\n1. Nie czituj (Ban permanentny).\n2. Nie kradnij i nie griefuj.\n3. Szanuj innych graczy.\n4. Zakaz reklamowania innych serwerów.\n5. Baw się dobrze! \n\nPełny regulamin znajdziesz na odpowiednim kanale.');
+    message.reply('📜 **REGULAMIN XWAR SMP** 📜\n1. Nie czituj (Ban permanentny).\n2. Nie kradnij i nie griefuj.\n3. Szanuj innych graczy.\n4. Zakaz reklamowania innych serwerów.\n5. Baw się dobrze!');
   }
 
-  // Komenda !dc z Twoim linkiem
+  // Komenda !dc
   if (msg === '!dc' || msg === '!discord') {
     message.reply('🔗 **LINK DO DISCORDA** 🔗\nZaproś znajomych: https://discord.gg/awEJcWmM');
   }
 
-  // Komenda !pomoc - pokazuje wszystkie dostępne komendy
+  // NOWA Komenda !autor
+  if (msg === '!autor' || msg === '!tworca') {
+    message.reply('👑 Autorem i właścicielem tego bota jest **Sigiemka**. Dobra robota!');
+  }
+
+  // Komenda !pomoc (zaktualizowana o !autor)
   if (msg === '!pomoc') {
-    message.reply('🤖 **LISTA KOMEND BOTA XWAR SMP** 🤖\n\n`!ip` - Adres i port serwera\n`!regulamin` - Zasady serwera\n`!dc` - Link do zaproszenia znajomych\n`!hej` - Przywitanie z botem');
+    message.reply('🤖 **LISTA KOMEND BOTA XWAR SMP** 🤖\n\n`!ip` - Adres i port serwera\n`!regulamin` - Zasady serwera\n`!dc` - Zaproszenie na Discord\n`!autor` - Zobacz kto stworzył bota\n`!hej` - Przywitanie');
   }
 });
 
