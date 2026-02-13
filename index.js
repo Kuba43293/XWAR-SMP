@@ -19,19 +19,19 @@ client.on('messageCreate', async message => {
 
   const msg = message.content.toLowerCase();
 
-  // --- KOMENDA !POMOC ---
+  // --- ELEGANCKA KOMENDA !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
       .setTitle('✨ CENTRUM POMOCY XWAR SMP ✨')
       .setThumbnail(client.user.displayAvatarURL())
-      .setDescription('Oto lista funkcji bota:')
+      .setDescription('Witaj! Oto lista wszystkich funkcji, które pomogą Ci na serwerze:')
       .addFields(
-        { name: '📋 Info', value: '`!ip`, `!dc`, `!regulamin`' },
-        { name: '🎮 Fun', value: '`!kostka`, `!moneta`, `!ping`' },
-        { name: '👑 Inne', value: '`!autor`, `!ogloszenie [tekst]`' }
+        { name: '📍 Główne informacje', value: '`!ip` - Dane serwera\n`!dc` - Link Discord\n`!regulamin` - Zasady' },
+        { name: '🎮 Gry i Zabawa', value: '`!kostka` - Rzut kostką\n`!moneta` - Orzeł/Reszka\n`!ping` - Opóźnienie bota' },
+        { name: '👑 Administracja', value: '`!autor` - Twórca bota\n`!ogloszenie [tekst]` - Robi ogłoszenie' }
       )
-      .setFooter({ text: 'XWAR SMP - Najlepszy serwer!', iconURL: client.user.displayAvatarURL() })
+      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
 
     return message.reply({ embeds: [helpEmbed] });
@@ -63,7 +63,7 @@ client.on('messageCreate', async message => {
       .setColor('#00FF00')
       .setTitle('👑 TWÓRCA BOTA')
       .setDescription('Właścicielem bota jest **Sigiemka**.')
-      .setFooter({ text: 'Szacun! 🫡' });
+      .setFooter({ text: 'Pełen szacun! 🫡' });
     return message.reply({ embeds: [authorEmbed] });
   }
 
