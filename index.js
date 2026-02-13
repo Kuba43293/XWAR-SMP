@@ -73,14 +73,14 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !IP (Z WERSJĄ 1.21.11) ---
+  // --- KOMENDA !IP (ADRES I PORT IDEALNIE RÓWNO) ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
       .setTitle('🎮 SERWER XWAR SMP')
       .addFields(
         { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
-        { name: '🔌 PORT', value: '`34899`', inline: true },
+        { name: '🔌PORT', value: '`34899`', inline: true },
         { name: '🛠️ WERSJA', value: '`1.21.11`', inline: false }
       )
       .setFooter({ text: 'Dołącz do gry! 🔥' });
@@ -88,7 +88,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- NOWA KOMENDA !SERWER_INFO ---
+  // --- KOMENDA !SERWER_INFO ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
