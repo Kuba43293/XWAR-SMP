@@ -10,11 +10,11 @@ const client = new Client({
   ],
 });
 
-// Funkcja aktualizująca status na "Ludzi na DC: [liczba]"
+// Funkcja aktualizująca status na "Społeczność: [liczba]"
 function updateStatus() {
   const guild = client.guilds.cache.first();
   if (guild) {
-    client.user.setActivity(`Ludzi na DC: ${guild.memberCount}`, { 
+    client.user.setActivity(`Społeczność: ${guild.memberCount}`, { 
       type: ActivityType.Watching 
     });
   }
@@ -26,7 +26,7 @@ client.once('ready', () => {
   setInterval(updateStatus, 300000); 
 });
 
-// SYSTEM POWITAŃ
+// --- SYSTEM POWITAŃ ---
 client.on('guildMemberAdd', member => {
   const channel = member.guild.channels.cache.find(ch => ch.name === 'witamy' || ch.name === 'powitania');
   if (!channel) return;
@@ -46,29 +46,28 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const msg = message.content.toLowerCase();
 
-  // --- BLOKADA KOMENDY !SAY (Tylko dla osób z uprawnieniami) ---
+  // --- BLOKADA DLA RANGI GRACZ (!SAY) ---
   if (msg.startsWith('!say ')) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-      return message.reply("❌ Nie masz uprawnień, aby używać bota do mówienia!");
+      return message.reply("❌ Nie masz uprawnień Administracyjnych do używania tej komendy!");
     }
     const sayMessage = message.content.slice(5);
     await message.delete();
     return message.channel.send(sayMessage);
   }
 
-  // --- BLOKADA KOMENDY !OGLOSZENIE (Tylko dla osób z uprawnieniami) ---
+  // --- BLOKADA DLA RANGI GRACZ (!OGLOSZENIE) ---
   if (msg.startsWith('!ogloszenie ')) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-      return message.reply("❌ Ta komenda jest tylko dla Administracji!");
+      return message.reply("❌ Ta komenda jest zarezerwowana tylko dla Administracji!");
     }
     const text = message.content.slice(12);
     const ann = new EmbedBuilder()
       .setColor('#FF0000')
       .setTitle('📢 OGŁOSZENIE')
       .setDescription(text)
-      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!' }) //
+      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!' })
       .setTimestamp();
-    
     await message.channel.send({ embeds: [ann] });
     return message.delete();
   }
@@ -99,14 +98,14 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !IP (Wyrównana bez spacji) ---
+  // --- KOMENDA !IP ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
       .setTitle('🎮 SERWER XWAR SMP')
       .addFields(
         { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
-        { name: '🔌PORT', value: '`34899`', inline: true },
+        { name: '🔌 PORT', value: '`34899`', inline: true },
         { name: '🛠️ WERSJA', value: '`1.21.11`', inline: false }
       )
       .setFooter({ text: 'Dołącz do gry! 🔥' });
@@ -114,7 +113,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- KOMENDA !SOCIAL (Z klikalnym linkiem) ---
+  // --- KOMENDA !SOCIAL ---
   if (msg === '!social') {
     const socialEmbed = new EmbedBuilder()
       .setColor('#EE82EE')
@@ -127,7 +126,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [socialEmbed] });
   }
 
-  // --- KOMENDA !REGULAMIN (Naprawiony link kanału) ---
+  // --- KOMENDA !REGULAMIN ---
   if (msg === '!regulamin') {
     const regChannel = message.guild.channels.cache.find(ch => ch.name === 'regulamin');
     const channelMention = regChannel ? `<#${regChannel.id}>` : '#regulamin';
@@ -137,26 +136,39 @@ client.on('messageCreate', async message => {
       .setTitle('📜 REGULAMIN SERWERA XWAR SMP')
       .setDescription(`Aby zapoznać się z pełną treścią zasad, odwiedź kanał ${channelMention}`)
       .addFields(
-        { name: '🚀 Główne zasady:', value: '• Zakaz czitowania\n• Zakaz griefowania i niszczenia baz\n• Szanuj innych graczy i administrację' }
+        { name: '🚀 Główne zasady:', value: '• Zakaz czitowania\n• Zakaz griefowania\n• Szanuj innych graczy' }
       )
       .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!' });
 
     return message.reply({ embeds: [regEmbed] });
   }
 
-  // --- POZOSTAŁE KOMENDY ---
+  // --- KOMENDY FUN ---
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
-  if (msg === '!ping') return message.reply(`🏓 Pong! Opóźnienie: **${Math.round(client.ws.ping)}ms**`);
+  if (msg === '!ping') return message.reply(`🏓 Pong! **${Math.round(client.ws.ping)}ms**`);
   if (msg === '!kostka') return message.reply(`🎲 Wypadło: **${Math.floor(Math.random() * 6) + 1}**`);
   if (msg === '!moneta') return message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
-  
-  if (msg === '!serwer_info') {
-    return message.reply(`📊 Na serwerze **${message.guild.name}** jest obecnie **${message.guild.memberCount}** osób.`);
+  if (msg === '!avatar') {
+    const avEmbed = new EmbedBuilder().setColor('#ffffff').setTitle(`Avatar użytkownika ${message.author.username}`).setImage(message.author.displayAvatarURL({ size: 1024 }));
+    return message.reply({ embeds: [avEmbed] });
   }
 
-  if (msg === '!avatar') {
-    const avatarEmbed = new EmbedBuilder().setColor('#ffffff').setTitle(`Avatar: ${message.author.username}`).setImage(message.author.displayAvatarURL({ size: 1024 }));
-    return message.reply({ embeds: [avatarEmbed] });
+  if (msg.startsWith('!losuj ')) {
+    const choices = message.content.slice(7).split(' ');
+    if (choices.length < 2) return message.reply('❌ Podaj minimum dwie opcje!');
+    const random = choices[Math.floor(Math.random() * choices.length)];
+    return message.reply(`🤔 Wybieram: **${random}**!`);
+  }
+
+  if (msg === '!serwer_info') {
+    const infoEmbed = new EmbedBuilder()
+      .setColor('#00AAFF')
+      .setTitle(`📊 Informacje o ${message.guild.name}`)
+      .addFields(
+        { name: 'Członkowie:', value: `${message.guild.memberCount}`, inline: true },
+        { name: 'Właściciel:', value: `<@${message.guild.ownerId}>`, inline: true }
+      );
+    return message.reply({ embeds: [infoEmbed] });
   }
 });
 
