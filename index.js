@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, ActivityType, EmbedBuilder } = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -10,7 +10,7 @@ const client = new Client({
 });
 
 client.once('ready', () => {
-  console.log(`Zalogowano jako ${client.user.tag}! Bot XWAR SMP jest ONLINE.`);
+  console.log(`Zalogowano jako ${client.user.tag}!`);
   client.user.setActivity('na XWAR SMP', { type: ActivityType.Playing });
 });
 
@@ -19,51 +19,74 @@ client.on('messageCreate', message => {
 
   const msg = message.content.toLowerCase();
 
-  // Komenda !hej
-  if (msg === '!hej') {
-    message.reply('Siemanko! Tu bot serwera **XWAR SMP**. ⚔️');
-  }
-
-  // Komenda !ip / !serwer
-  if (msg === '!ip' || msg === '!serwer') {
-    message.reply('🎮 **ADRES SERWERA XWAR SMP** 🎮\n\n🌍 IP: `Xwarsmp.aternos.me` \n🔌 Port: `34899` \n\nZasuwaj do gry! 🔥');
-  }
-
-  // Komenda !regulamin
-  if (msg === '!regulamin' || msg === '!zasady') {
-    message.reply('📜 **REGULAMIN XWAR SMP** 📜\n1. Nie czituj (Ban permanentny).\n2. Nie kradnij i nie griefuj.\n3. Szanuj innych graczy.\n4. Zakaz reklamowania innych serwerów.\n5. Baw się dobrze!');
-  }
-
-  // Komenda !dc
-  if (msg === '!dc' || msg === '!discord') {
-    message.reply('🔗 **LINK DO DISCORDA** 🔗\nZaproś znajomych: https://discord.gg/awEJcWmM');
-  }
-
-  // Komenda !autor
-  if (msg === '!autor' || msg === '!tworca') {
-    message.reply('👑 Autorem i właścicielem tego bota jest **Sigiemka**. Dobra robota!');
-  }
-
-  // NOWA Komenda !ping
-  if (msg === '!ping') {
-    message.reply(`🏓 Pong! Opóźnienie bota to: **${Math.round(client.ws.ping)}ms**.`);
-  }
-
-  // NOWA Komenda !kostka
-  if (msg === '!kostka') {
-    const wynik = Math.floor(Math.random() * 6) + 1;
-    message.reply(`🎲 Rzuciłeś kostką i wypadło: **${wynik}**!`);
-  }
-
-  // NOWA Komenda !moneta
-  if (msg === '!moneta') {
-    const wynik = Math.random() < 0.5 ? 'Orzeł' : 'Reszka';
-    message.reply(`🪙 Rzuciłeś monetą i wypadło: **${wynik}**!`);
-  }
-
-  // Komenda !pomoc (zaktualizowana)
+  // --- KOMENDA !POMOC (Wersja Premium) ---
   if (msg === '!pomoc') {
-    message.reply('🤖 **LISTA KOMEND BOTA XWAR SMP** 🤖\n\n`!ip`, `!regulamin`, `!dc`, `!autor`\n`!ping` - Sprawdź lagi bota\n`!kostka`, `!moneta` - Zabawy losowe\n`!hej` - Przywitanie');
+    const helpEmbed = new EmbedBuilder()
+      .setColor('#FFD700') // Złoty kolor paska
+      .setTitle('🤖 CENTRUM POMOCY XWAR SMP')
+      .setThumbnail(client.user.displayAvatarURL())
+      .setDescription('Oto lista wszystkich dostępnych funkcji bota:')
+      .addFields(
+        { name: '📍 Główne informacje', value: '`!ip` - Dane serwera\n`!dc` - Link Discord\n`!regulamin` - Zasady' },
+        { name: '🎮 Rozrywka', value: '`!kostka` - Rzut kostką\n`!moneta` - Orzeł/Reszka\n`!ping` - Status bota' },
+        { name: '👑 Administracja', value: '`!autor` - Twórca bota\n`!ogloszenie [tekst]` - Robi ogłoszenie' }
+      )
+      .setFooter({ text: 'XWAR SMP - Najlepszy serwer survival!', iconURL: client.user.displayAvatarURL() })
+      .setTimestamp();
+
+    message.reply({ embeds: [helpEmbed] });
+  }
+
+  // --- KOMENDA !IP (Ładna ramka) ---
+  if (msg === '!ip' || msg === '!serwer') {
+    const ipEmbed = new EmbedBuilder()
+      .setColor('#FFD700')
+      .setTitle('🎮 DOŁĄCZ DO GRY NA XWAR SMP')
+      .addFields(
+        { name: '🌍 ADRES IP', value: '`Xwarsmp.aternos.me`', inline: true },
+        { name: '🔌 PORT', value: '`34899`', inline: true }
+      )
+      .setImage('https://i.imgur.com/8N4R7yS.png') // Możesz tu wstawić link do screena z gry
+      .setFooter({ text: 'Czekamy na Ciebie!' });
+
+    message.reply({ embeds: [ipEmbed] });
+  }
+
+  // --- KOMENDA !AUTOR (Z Twoim zdjęciem) ---
+  if (msg === '!autor') {
+    const authorEmbed = new EmbedBuilder()
+      .setColor('#00ff00')
+      .setTitle('👑 TWÓRCA BOTA')
+      .setDescription('Właścicielem i pomysłodawcą bota jest **Sigiemka**.')
+      .setThumbnail(message.guild.ownerId === message.author.id ? message.author.displayAvatarURL() : null)
+      .setFooter({ text: 'Dobra robota, Szefie!' });
+
+    message.reply({ embeds: [authorEmbed] });
+  }
+
+  // --- RESZTA KOMEND ---
+  if (msg === '!dc' || msg === '!discord') {
+    message.reply('🔗 **Nasz Discord:** https://discord.gg/awEJcWmM');
+  }
+
+  if (msg === '!regulamin') {
+    message.reply('📜 **Zasady:** Nie czituj, nie kradnij, szanuj innych i baw się dobrze!');
+  }
+
+  if (msg === '!kostka') {
+    message.reply(`🎲 Wynik: **${Math.floor(Math.random() * 6) + 1}**`);
+  }
+
+  if (msg === '!moneta') {
+    message.reply(`🪙 Wypadło: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
+  }
+
+  // Komenda do ogłoszeń
+  if (msg.startsWith('!ogloszenie ')) {
+    const text = message.content.slice(12);
+    const ann = new EmbedBuilder().setColor('#ff0000').setTitle('📢 OGŁOSZENIE').setDescription(text).setTimestamp();
+    message.channel.send({ embeds: [ann] });
+    message.delete();
   }
 });
 
