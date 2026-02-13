@@ -23,7 +23,6 @@ function updateStatus() {
 client.once('ready', () => {
   console.log(`Bot ${client.user.tag} jest online!`);
   updateStatus();
-  // Odświeżanie co 5 minut
   setInterval(updateStatus, 300000); 
 });
 
@@ -47,7 +46,7 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const msg = message.content.toLowerCase();
 
-  // --- ELEGANCKA KOMENDA !POMOC (Z nowymi funkcjami) ---
+  // --- ELEGANCKA KOMENDA !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -68,13 +67,14 @@ client.on('messageCreate', async message => {
             value: '> **!serwer_info** - Dane o DC\n> **!ping** - Status bota\n> **!ogloszenie [tekst]** - Robi ogłoszenie' 
         }
       )
-      .setFooter({ text: 'XWAR SMP - Twoya kraina survivalu!', iconURL: client.user.displayAvatarURL() })
+      // TUTAJ NAPRAWIONO LITERÓWKĘ:
+      .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
 
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- NOWA KOMENDA !SERWER_INFO ---
+  // --- KOMENDA !SERWER_INFO ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
@@ -89,7 +89,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [infoEmbed] });
   }
 
-  // --- NOWA KOMENDA !AVATAR ---
+  // --- KOMENDA !AVATAR ---
   if (msg === '!avatar') {
     const avatarEmbed = new EmbedBuilder()
       .setColor('#ffffff')
@@ -98,7 +98,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [avatarEmbed] });
   }
 
-  // --- NOWA KOMENDA !LOSUJ ---
+  // --- KOMENDA !LOSUJ ---
   if (msg.startsWith('!losuj ')) {
     const choices = message.content.slice(7).split(' ');
     if (choices.length < 2) return message.reply('❌ Podaj dwie opcje po spacji, np. `!losuj pizza burger`');
@@ -119,8 +119,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- RESZTA KOMEND ---
-  if (msg === '!social') return message.reply('📱 Znajdziesz nas na TikToku i YouTube! (Tu możesz wstawić linki)');
+  if (msg === '!social') return message.reply('📱 Znajdziesz nas na TikToku i YouTube!');
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
   if (msg === '!autor') return message.reply('👑 Twórcą bota jest **Sigiemka**.');
   if (msg === '!regulamin') return message.reply('📜 Nie czituj, nie kradnij i szanuj innych graczy!');
