@@ -46,24 +46,36 @@ client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const msg = message.content.toLowerCase();
 
-  // --- KOMENDA !SAY (Dla Ciebie) ---
+  // --- KOMENDA !SAY (Tylko dla osób z uprawnieniami) ---
   if (msg.startsWith('!say ')) {
-    // Sprawdza, czy osoba ma uprawnienia do zarządzania wiadomościami
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-        return message.reply("❌ Nie masz uprawnień do używania tej komendy!");
+        return message.reply("❌ Nie masz uprawnień!");
     }
     const sayMessage = message.content.slice(5);
-    await message.delete(); // Usuwa Twoją wiadomość !say
-    return message.channel.send(sayMessage); // Wysyła sam tekst przez bota
+    await message.delete();
+    return message.channel.send(sayMessage);
   }
 
-  // --- POPRAWIONE MENU !POMOC ---
+  // --- KOMENDA !REGULAMIN (Zaktualizowana o link do kanału) ---
+  if (msg === '!regulamin') {
+    const regEmbed = new EmbedBuilder()
+      .setColor('#FF0000')
+      .setTitle('📜 REGULAMIN SERWERA XWAR SMP')
+      .setDescription('Aby zapoznać się z pełną treścią zasad, odwiedź kanał <#1337426177894580234>') // Pamiętaj, aby ID się zgadzało!
+      .addFields(
+        { name: '🚀 Główne zasady:', value: '• Zakaz czitowania i używania wspomagaczy\n• Zakaz griefowania (chyba że regulamin sezonu mówi inaczej)\n• Szanuj innych graczy i administrację\n• Zakaz reklamowania innych serwerów' }
+      )
+      .setFooter({ text: 'Nieznajomość regulaminu nie zwalnia z jego przestrzegania!' });
+
+    return message.reply({ embeds: [regEmbed] });
+  }
+
+  // --- MENU !POMOC ---
   if (msg === '!pomoc') {
     const helpEmbed = new EmbedBuilder()
       .setColor('#FFD700')
       .setTitle('✨ CENTRUM POMOCY XWAR SMP ✨')
       .setThumbnail(client.user.displayAvatarURL())
-      .setDescription('Witaj! Oto lista wszystkich funkcji bota:')
       .addFields(
         { name: '📍 Główne informacje', value: '> **!ip** - Dane serwera\n> **!dc** - Link Discord\n> **!regulamin** - Zasady\n> **!social** - Nasze media' },
         { name: '🎮 Gry i Fun', value: '> **!kostka** - Rzut kostką\n> **!moneta** - Orzeł/Reszka\n> **!losuj [a] [b]** - Wybór opcji\n> **!avatar** - Twój awatar' },
@@ -75,7 +87,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [helpEmbed] });
   }
 
-  // --- KOMENDA !IP (Wyrównana) ---
+  // --- KOMENDA !IP (Wyrównana bez spacji) ---
   if (msg === '!ip' || msg === '!serwer') {
     const ipEmbed = new EmbedBuilder()
       .setColor('#FFD700')
@@ -90,7 +102,7 @@ client.on('messageCreate', async message => {
     return message.reply({ embeds: [ipEmbed] });
   }
 
-  // --- POZOSTAŁE KOMENDY ---
+  // --- RESZTA KOMEND ---
   if (msg === '!serwer_info') {
     const { guild } = message;
     const infoEmbed = new EmbedBuilder()
@@ -115,7 +127,7 @@ client.on('messageCreate', async message => {
 
   if (msg.startsWith('!losuj ')) {
     const choices = message.content.slice(7).split(' ');
-    if (choices.length < 2) return message.reply('❌ Podaj dwie opcje po spacji, np. `!losuj tak nie`');
+    if (choices.length < 2) return message.reply('❌ Podaj dwie opcje po spacji!');
     const picked = choices[Math.floor(Math.random() * choices.length)];
     return message.reply(`🤔 Wybieram: **${picked}**!`);
   }
@@ -123,8 +135,7 @@ client.on('messageCreate', async message => {
   if (msg === '!social') return message.reply('📱 Znajdziesz nas na TikToku i YouTube!');
   if (msg === '!dc') return message.reply('🔗 https://discord.gg/awEJcWmM');
   if (msg === '!autor') return message.reply('👑 Twórcą bota jest **Sigiemka**.');
-  if (msg === '!regulamin') return message.reply('📜 Nie czituj i szanuj innych graczy!');
-  if (msg === '!ping') return message.reply(`🏓 Pong! Opóźnienie: **${Math.round(client.ws.ping)}ms**`);
+  if (msg === '!ping') return message.reply(`🏓 Pong! **${Math.round(client.ws.ping)}ms**`);
   if (msg === '!kostka') return message.reply(`🎲 Wypadło: **${Math.floor(Math.random() * 6) + 1}**`);
   if (msg === '!moneta') return message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
 
