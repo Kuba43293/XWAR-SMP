@@ -1,11 +1,20 @@
 {
-  "name": "xwar-smp",
-  "version": "1.0.0",
-  "description": "Bot dla serwera XWAR SMP",
+  "name": "xwar-smp-bot",
+  "version": "2.5.0",
+  "description": "Profesjonalny bot dla serwera Minecraft XWAR SMP",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "discord",
+    "bot",
+    "minecraft",
+    "smp"
+  ],
+  "author": "XWAR SMP Team",
+  "license": "ISC",
   "dependencies": {
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.1"
