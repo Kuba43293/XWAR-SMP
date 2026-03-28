@@ -13,27 +13,33 @@ const {
 } = require('discord.js');
 const http = require('http');
 
-// SERWER WWW DLA RENDER
+// ==========================================
+// SERWER WWW DLA RENDER (ANTI-IDLE)
+// ==========================================
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.write("XWAR SMP STATUS: ACTIVE");
+    res.write("XWAR SMP STATUS: OK");
     res.end();
 }).listen(process.env.PORT || 10000);
 
+// ==========================================
+// INICJALIZACJA KLIENTA (INTENTS)
+// ==========================================
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildPresences,
-        GatewayIntentBits.GuildVoiceStates
+        GatewayIntentBits.GuildPresences
     ]
 });
 
+// ==========================================
 // KONFIGURACJA
+// ==========================================
 const CONFIG = {
-    COLOR: '#FF4500',
+    COLOR: '#FF4500', // Pomarańczowy XWAR
     OWNERS: ['1330125473719783455', '1288839682544762933', '1210915481691623475'],
     PREFIX: '!',
     SERVER_IP: 'xwarsmp.falix.gg',
@@ -42,23 +48,16 @@ const CONFIG = {
 
 const xpData = new Map();
 
-// FUNKCJE POMOCNICZE
-function createEmbed(title, description, color = CONFIG.COLOR) {
-    return new EmbedBuilder()
-        .setTitle(title)
-        .setDescription(description)
-        .setColor(color)
-        .setTimestamp();
-}
-
-// STATUS BOTA
+// ==========================================
+// STATUS BOTA (ROTACYJNY)
+// ==========================================
 function updateStatus() {
     const guild = client.guilds.cache.first();
-    if (!guild) return;
+    const memberCount = guild ? guild.memberCount : "...";
     
     const activities = [
         `🎮 IP: ${CONFIG.SERVER_IP}`,
-        `👥 Graczy: ${guild.memberCount}`,
+        `👥 Graczy: ${memberCount}`,
         `✨ Komenda: !pomoc`,
         `🛠️ Wersja: ${CONFIG.VERSION}`
     ];
@@ -70,6 +69,9 @@ function updateStatus() {
     }, 15000);
 }
 
+// ==========================================
+// EVENT: READY
+// ==========================================
 client.once('ready', () => {
     console.log(`--------------------------------------------------`);
     console.log(`🚀 XWAR SMP BOT ZOSTAŁ POMYŚLNIE URUCHOMIONY`);
@@ -79,26 +81,30 @@ client.once('ready', () => {
     updateStatus();
 });
 
-// POWITANIA I AUTOMATYCZNE ROLE
+// ==========================================
+// EVENT: NOWY CZŁONEK (POWITANIA)
+// ==========================================
 client.on('guildMemberAdd', async (member) => {
+    // Automatyczna rola
     const role = member.guild.roles.cache.find(r => r.name === 'Gracz');
-    if (role) member.roles.add(role).catch(() => {});
+    if (role) member.roles.add(role).catch(() => console.log("Błąd nadawania roli."));
 
     const welcomeChannel = member.guild.channels.cache.find(ch => ch.name === 'witamy' || ch.name === 'powitania');
     if (welcomeChannel) {
         const welcomeEmbed = new EmbedBuilder()
             .setColor('#2ECC71')
-            .setTitle('👋 NOWA OSOBA NA SERWERZE!')
+            .setTitle('👋 WITAJ NA XWAR SMP!')
             .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-            .setDescription(`Witaj **${member.user.username}** na **XWAR SMP**!\n\n🔹 IP Serwera: \`${CONFIG.SERVER_IP}\`\n🔹 Przeczytaj: <#regulamin>\n🔹 Miłej zabawy!`)
-            .addFields({ name: '📊 Statystyki', value: `Jesteś naszym **${member.guild.memberCount}** użytkownikiem!`, inline: true })
-            .setFooter({ text: 'XWAR SMP Community', iconURL: member.guild.iconURL() });
+            .setDescription(`Witaj **${member.user.username}**!\n\n🔹 IP: \`${CONFIG.SERVER_IP}\`\n🔹 Zapoznaj się z kanałem <#regulamin>.\n🔹 Jesteś naszym **${member.guild.memberCount}** użytkownikiem!`)
+            .setFooter({ text: 'Życzymy udanej gry!', iconURL: member.guild.iconURL() });
         
-        welcomeChannel.send({ content: `Witaj ${member}!`, embeds: [welcomeEmbed] });
+        welcomeChannel.send({ content: `Cześć ${member}!`, embeds: [welcomeEmbed] });
     }
 });
 
-// SYSTEM TICKETÓW (OBSŁUGA PRZYCISKÓW)
+// ==========================================
+// SYSTEM TICKETÓW (INTERAKCJE)
+// ==========================================
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
@@ -114,47 +120,40 @@ client.on('interactionCreate', async (interaction) => {
             type: ChannelType.GuildText,
             permissionOverwrites: [
                 { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-                { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] },
-                { id: '1330125473719783455', allow: [PermissionsBitField.Flags.ViewChannel] } // Przykładowe ID Admina
+                { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
             ],
         });
 
         const ticketEmbed = new EmbedBuilder()
             .setColor('#3498DB')
-            .setTitle('🎫 BIURO OBSŁUGI GRACZA')
-            .setDescription(`Witaj ${interaction.user}!\n\nNapisz dokładnie, w czym możemy Ci pomóc. Zaraz ktoś z administracji zajmie się Twoim zgłoszeniem.\n\nUżyj przycisku poniżej, aby zakończyć rozmowę.`)
-            .setFooter({ text: 'XWAR SMP - System Support' });
+            .setTitle('🎫 POMOC TECHNICZNA')
+            .setDescription(`Witaj ${interaction.user}!\n\nNapisz tutaj, w czym możemy Ci pomóc. Administracja zajmie się Twoją sprawą wkrótce.`)
+            .setFooter({ text: 'Użyj przycisku poniżej, aby zamknąć.' });
 
         const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('close_ticket').setLabel('Zamknij Ticket').setStyle(ButtonStyle.Danger).setEmoji('🔒'),
-            new ButtonBuilder().setCustomId('claim_ticket').setLabel('Przejmij (Admin)').setStyle(ButtonStyle.Success).setEmoji('👋')
+            new ButtonBuilder().setCustomId('close_ticket').setLabel('Zamknij').setStyle(ButtonStyle.Danger).setEmoji('🔒')
         );
 
         await ticketChannel.send({ embeds: [ticketEmbed], components: [row] });
-        await interaction.reply({ content: `✅ Twój ticket został utworzony: ${ticketChannel}`, ephemeral: true });
+        await interaction.reply({ content: `✅ Stworzono ticket: ${ticketChannel}`, ephemeral: true });
     }
 
     if (interaction.customId === 'close_ticket') {
-        await interaction.reply({ content: '🔒 Zamykanie zgłoszenia za 10 sekund...' });
-        setTimeout(() => interaction.channel.delete().catch(() => {}), 10000);
-    }
-
-    if (interaction.customId === 'claim_ticket') {
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
-            return interaction.reply({ content: '❌ Tylko administracja może to zrobić!', ephemeral: true });
-        }
-        await interaction.reply({ content: `✅ Ticket został przejęty przez: ${interaction.user.tag}` });
+        await interaction.reply({ content: '🔒 Usuwanie kanału za 5 sekund...' });
+        setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
     }
 });
 
-// KOMENDY I SYSTEM XP
+// ==========================================
+// GŁÓWNA OBSŁUGA WIADOMOŚCI
+// ==========================================
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
 
-    // Prosty system XP
+    // System XP
     const userId = message.author.id;
     let userXP = xpData.get(userId) || 0;
-    userXP += Math.floor(Math.random() * 5) + 1;
+    userXP += 1;
     xpData.set(userId, userXP);
 
     if (!message.content.startsWith(CONFIG.PREFIX)) return;
@@ -162,157 +161,89 @@ client.on('messageCreate', async (message) => {
     const args = message.content.slice(CONFIG.PREFIX.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
 
-    // MENU POMOCY
+    // KOMENDA: POMOC
     if (command === 'pomoc') {
         const helpEmbed = new EmbedBuilder()
             .setColor(CONFIG.COLOR)
             .setTitle('✨ PANEL POMOCY XWAR SMP ✨')
-            .setThumbnail(client.user.displayAvatarURL())
-            .setDescription('Oto lista dostępnych komend bota podzielona na kategorie:')
             .addFields(
-                { name: '🌐 OGÓLNE', value: '`!ip` - Informacje o serwerze\n`!dc` - Link do Discorda\n`!social` - Media społecznościowe\n`!profil` - Twoje statystyki', inline: false },
-                { name: '🛠️ NARZĘDZIA', value: '`!ticket` - Otwórz system pomocy\n`!ping` - Sprawdź opóźnienie bota', inline: false },
-                { name: '👮 ADMIN', value: '`!clear [ilość]` - Usuwanie czatu\n`!ogloszenie [tekst]` - Wysyłanie ogłoszenia\n`!say [tekst]` - Bot mówi za Ciebie', inline: false }
+                { name: '🌐 OGÓLNE', value: '`!ip`, `!social`, `!dc`, `!profil`, `!ping`' },
+                { name: '🛠️ NARZĘDZIA', value: '`!ticket` - Panel zgłoszeń' },
+                { name: '👮 ADMIN', value: '`!clear [ilość]`, `!ogloszenie [tekst]`, `!say [tekst]`' }
             )
-            .setFooter({ text: `XWAR SMP | Komendy działają z prefiksem ${CONFIG.PREFIX}` });
+            .setFooter({ text: `Prefiks: ${CONFIG.PREFIX}` });
 
         return message.reply({ embeds: [helpEmbed] });
     }
 
-    // KOMENDA IP
+    // KOMENDA: IP
     if (command === 'ip') {
-        const ipEmbed = new EmbedBuilder()
-            .setColor('#F1C40F')
-            .setTitle('🎮 POŁĄCZ SIĘ Z NAMI')
-            .addFields(
-                { name: '📍 ADRES IP', value: `\`${CONFIG.SERVER_IP}\``, inline: false },
-                { name: '🔌 WERSJA', value: '`1.20.1 - 1.21.x`', inline: true },
-                { name: '📡 PORT', value: '`25565 (Standard)`', inline: true }
-            )
-            .setThumbnail('https://cdn-icons-png.flaticon.com/512/6073/6073874.png')
-            .setFooter({ text: 'Do zobaczenia na serwerze!' });
-
-        return message.reply({ embeds: [ipEmbed] });
+        return message.reply({ embeds: [
+            new EmbedBuilder()
+                .setColor('#F1C40F')
+                .setTitle('🎮 ADRES IP SERWERA')
+                .setDescription(`🚀 IP: \`${CONFIG.SERVER_IP}\`\n🔌 Wersja: \`1.20.1 - 1.21.x\``)
+        ]});
     }
 
-    // KOMENDA PROFIL (XP)
+    // KOMENDA: PROFIL
     if (command === 'profil') {
         const xp = xpData.get(message.author.id) || 0;
-        const level = Math.floor(0.1 * Math.sqrt(xp));
-        
-        const profileEmbed = new EmbedBuilder()
-            .setColor('#9B59B6')
-            .setAuthor({ name: `Profil: ${message.author.username}`, iconURL: message.author.displayAvatarURL() })
-            .addFields(
-                { name: '⭐ Poziom', value: `\`${level}\``, inline: true },
-                { name: '📈 Doświadczenie', value: `\`${xp}\` XP`, inline: true }
-            )
-            .setFooter({ text: 'Pisz wiadomości, aby zdobywać XP!' });
-
-        return message.reply({ embeds: [profileEmbed] });
+        const level = Math.floor(0.2 * Math.sqrt(xp));
+        return message.reply(`⭐ **Twój Profil**\nLevel: \`${level}\`\nXP: \`${xp}\``);
     }
 
-    // KOMENDA TICKET (SETUP)
+    // KOMENDA: TICKET (ADMIN)
     if (command === 'ticket') {
         if (!CONFIG.OWNERS.includes(message.author.id)) return;
-        
-        const setupEmbed = new EmbedBuilder()
-            .setColor('#2C3E50')
-            .setTitle('📩 POTRZEBUJESZ POMOCY?')
-            .setDescription('Jeśli masz problem z serwerem, chcesz zgłosić błąd lub gracza, kliknij przycisk poniżej.')
-            .addFields({ name: 'Godziny pracy', value: 'Zazwyczaj odpowiadamy w kilka minut!' })
-            .setFooter({ text: 'System zgłoszeń XWAR SMP' });
-
         const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('open_ticket')
-                .setLabel('Otwórz Zgłoszenie')
-                .setStyle(ButtonStyle.Primary)
-                .setEmoji('📩')
+            new ButtonBuilder().setCustomId('open_ticket').setLabel('Otwórz Ticket').setStyle(ButtonStyle.Primary).setEmoji('📩')
         );
-
+        const embed = new EmbedBuilder().setTitle('📩 POMOC').setDescription('Kliknij przycisk, aby porozmawiać z Administracją.').setColor('#2C3E50');
         await message.delete();
-        return message.channel.send({ embeds: [setupEmbed], components: [row] });
+        return message.channel.send({ embeds: [embed], components: [row] });
     }
 
-    // KOMENDA CLEAR
+    // KOMENDA: CLEAR (ADMIN)
     if (command === 'clear') {
-        if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-            return message.reply('❌ Nie masz uprawnień do usuwania wiadomości!');
-        }
-        
+        if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
         const amount = parseInt(args[0]);
-        if (isNaN(amount) || amount < 1 || amount > 100) {
-            return message.reply('❌ Podaj liczbę od 1 do 100.');
-        }
-
+        if (isNaN(amount) || amount < 1 || amount > 100) return message.reply("Podaj liczbę 1-100.");
         await message.channel.bulkDelete(amount + 1, true);
-        const log = await message.channel.send(`✅ Usunięto **${amount}** wiadomości.`);
-        setTimeout(() => log.delete().catch(() => {}), 3000);
+        const msg = await message.channel.send(`✅ Usunięto ${amount} wiadomości.`);
+        setTimeout(() => msg.delete().catch(() => {}), 3000);
     }
 
-    // KOMENDA OGLOSZENIE
+    // KOMENDA: OGLOSZENIE (ADMIN)
     if (command === 'ogloszenie') {
-        if (!CONFIG.OWNERS.includes(message.author.id)) return;
-        
-        const text = args.join(' ');
-        if (!text) return message.reply('❌ Podaj treść ogłoszenia!');
-
-        const announceEmbed = new EmbedBuilder()
-            .setColor('#E74C3C')
-            .setTitle('🚨 WAŻNY KOMUNIKAT')
-            .setDescription(text)
-            .setThumbnail(message.guild.iconURL())
-            .setFooter({ text: `Ogłoszenie od: ${message.author.username}` })
-            .setTimestamp();
-
-        await message.delete();
-        return message.channel.send({ content: '@everyone', embeds: [announceEmbed] });
-    }
-
-    // KOMENDA SAY
-    if (command === 'say') {
         if (!CONFIG.OWNERS.includes(message.author.id)) return;
         const text = args.join(' ');
         if (!text) return;
+        const embed = new EmbedBuilder().setTitle('📢 OGŁOSZENIE').setDescription(text).setColor('#E74C3C').setTimestamp();
         await message.delete();
-        return message.channel.send(text);
+        return message.channel.send({ content: '@everyone', embeds: [embed] });
     }
 
-    // KOMENDA SOCIAL
+    // KOMENDA: SOCIAL
     if (command === 'social') {
-        const socialEmbed = new EmbedBuilder()
-            .setColor('#00ACEE')
-            .setTitle('📲 NASZE MEDIA SPOŁECZNOŚCIOWE')
-            .addFields(
-                { name: '🎵 TikTok', value: '[Obserwuj nas!](https://www.tiktok.com/@kuba06909)', inline: true },
-                { name: '📺 YouTube', value: '[Subskrybuj!](https://youtube.com/)', inline: true }
-            )
-            .setFooter({ text: 'Dziękujemy za wsparcie!' });
-
-        return message.reply({ embeds: [socialEmbed] });
+        return message.reply("📱 **Nasze Sociale:**\nTikTok: https://www.tiktok.com/@kuba06909");
     }
 
-    // KOMENDA PING
-    if (command === 'ping') {
-        return message.reply(`🏓 Pong! Opóźnienie bota: \`${client.ws.ping}ms\``);
+    // KOMENDA: DC
+    if (command === 'dc') {
+        return message.reply("🔗 **Link do Discorda:**\nhttps://discord.gg/twoj-kod");
     }
 });
 
-// LOGOWANIE BŁĘDÓW DO KONSOLI
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('--- NIEPRZEWIDZIANY BŁĄD ---');
-    console.error(reason);
-});
+// ==========================================
+// OBSŁUGA BŁĘDÓW I LOGOWANIE
+// ==========================================
+process.on('unhandledRejection', (err) => console.error('Błąd:', err));
 
-// URUCHOMIENIE BOTA
-const TOKEN = process.env.MOJ_TOCKEN || process.env.DISCORD_TOKEN;
+const TOKEN = process.env.MOJ_TOCKEN;
 
 if (!TOKEN) {
-    console.log("❌ BŁĄD: Nie znaleziono tokenu bota w Environment Variables!");
+    console.log("❌ BŁĄD: Brak zmiennej MOJ_TOCKEN w Environment!");
 } else {
-    client.login(TOKEN).catch(err => {
-        console.log("❌ BŁĄD LOGOWANIA:");
-        console.error(err);
-    });
+    client.login(TOKEN).catch(e => console.error("❌ Błąd logowania:", e.message));
 }
