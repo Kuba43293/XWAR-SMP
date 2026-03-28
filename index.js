@@ -13,7 +13,7 @@ const {
 const http = require('http');
 
 // ==========================================
-// SERWER WWW (PODSTAWA DLA RENDERA)
+// SERWER WWW (WYMAGANY PRZEZ RENDER.COM)
 // ==========================================
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -24,81 +24,111 @@ http.createServer((req, res) => {
 });
 
 // ==========================================
-// INICJALIZACJA BOTA
+// KONFIGURACJA I INTENTY
 // ==========================================
-// Używamy podstawowych intentów, aby wykluczyć błędy uprawnień
 const client = new Client({
     intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.Guilds,           // Zarządzanie serwerem
+        GatewayIntentBits.GuildMessages,    // Czytanie wiadomości
+        GatewayIntentBits.MessageContent,   // Czytanie treści (WYMAGA WŁĄCZENIA W PANELU!)
+        GatewayIntentBits.GuildMembers      // Informacje o członkach
     ]
 });
 
 const CONFIG = {
-    COLOR: '#FF4500',
+    COLOR: '#FF4500', // Pomarańczowy kolor XWAR
     OWNERS: ['1330125473719783455', '1288839682544762933', '1210915481691623475'],
     PREFIX: '!',
     SERVER_IP: 'xwarsmp.falix.gg',
-    VERSION: '2.0.3 STABLE'
+    VERSION: '2.0.4 PRODUCTION'
 };
 
-function updateStatus() {
-    try {
-        if (client.user) {
-            client.user.setActivity(`🎮 IP: ${CONFIG.SERVER_IP}`, { type: ActivityType.Watching });
-        }
-    } catch (e) {
-        console.log("⚠️ Błąd statusu:", e.message);
-    }
-}
-
+// ==========================================
+// ZDARZENIE: GOTOWOŚĆ BOTA
+// ==========================================
 client.once('ready', () => {
     console.log(`--------------------------------------------------`);
-    console.log(`✅ ZALOGOWANO POMYŚLNIE JAKO: ${client.user.tag}`);
-    console.log(`🛡️ Bot jest gotowy do pracy!`);
+    console.log(`✅ POŁĄCZONO Z DISCORDEM!`);
+    console.log(`🤖 Zalogowano jako: ${client.user.tag}`);
+    console.log(`⚙️ Wersja bota: ${CONFIG.VERSION}`);
     console.log(`--------------------------------------------------`);
-    updateStatus();
-    setInterval(updateStatus, 60000);
+    
+    // Ustawienie statusu bota
+    client.user.setActivity(`🎮 IP: ${CONFIG.SERVER_IP}`, { type: ActivityType.Watching });
 });
 
 // ==========================================
-// PROSTE KOMENDY
+// KOMENDY (OBSŁUGA WIADOMOŚCI)
 // ==========================================
 client.on('messageCreate', async (message) => {
+    // Ignoruj boty i wiadomości prywatne
     if (message.author.bot || !message.guild) return;
+
+    // Sprawdź czy wiadomość zaczyna się od prefixu
     if (!message.content.startsWith(CONFIG.PREFIX)) return;
 
     const args = message.content.slice(CONFIG.PREFIX.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
 
-    if (command === 'ip') return message.reply(`🎮 IP Serwera: \`${CONFIG.SERVER_IP}\``);
-    if (command === 'ping') return message.reply(`🏓 Pong! \`${client.ws.ping}ms\``);
+    // Komenda !pomoc
+    if (command === 'pomoc') {
+        const embed = new EmbedBuilder()
+            .setColor(CONFIG.COLOR)
+            .setTitle('✨ PANEL POMOCY XWAR SMP')
+            .addFields(
+                { name: '🎮 Serwer', value: '`!ip` - Adres serwera\n`!ping` - Opóźnienie bota', inline: true },
+                { name: '🔗 Inne', value: '`!dc` - Link do Discorda\n`!social` - Nasze media', inline: true }
+            )
+            .setFooter({ text: `Wersja: ${CONFIG.VERSION}` })
+            .setTimestamp();
+        
+        return message.reply({ embeds: [embed] });
+    }
+
+    // Komenda !ip
+    if (command === 'ip') {
+        return message.reply(`🎮 Adres IP do wejścia na serwer: **\`${CONFIG.SERVER_IP}\`**`);
+    }
+
+    // Komenda !ping
+    if (command === 'ping') {
+        return message.reply(`🏓 Pong! Opóźnienie bota wynosi: **\`${client.ws.ping}ms\`**`);
+    }
+
+    // Komenda !dc
+    if (command === 'dc') {
+        return message.reply('🔗 Oficjalny link do naszego Discorda: https://discord.gg/TWOJ-LINK');
+    }
 });
 
 // ==========================================
-// LOGOWANIE
+// SYSTEM LOGOWANIA I BŁĘDÓW
 // ==========================================
-console.log("🔍 Sprawdzanie tokena...");
+console.log("🔍 Inicjalizacja procesu logowania...");
+
 const TOKEN = process.env.MOJ_TOCKEN;
 
 if (!TOKEN) {
-    console.error("❌ BRAK TOKENA! Sprawdź Environment Variables na Renderze.");
+    console.error("❌ BŁĄD: Zmienna MOJ_TOCKEN jest pusta!");
+    console.log("👉 Wejdź na Render -> Environment i upewnij się, że klucz MOJ_TOCKEN istnieje.");
 } else {
-    console.log(`⏳ Start logowania (Token: ${TOKEN.substring(0, 10)}...)`);
+    console.log(`⏳ Łączenie z API Discord (Token: ${TOKEN.substring(0, 10)}...)`);
     
     client.login(TOKEN).catch(err => {
-        console.error("❌ BŁĄD PODCZAS LOGOWANIA:");
-        console.error("Treść błędu:", err.message);
+        console.error("❌ BŁĄD LOGOWANIA:");
+        console.error(err.message);
         
-        if (err.message.includes("intents")) {
-            console.error("👉 ROZWIĄZANIE: Wejdź na Discord Developer Portal -> Bot -> Przewiń w dół do 'Privileged Gateway Intents' i włącz wszystkie trzy suwaki!");
+        if (err.message.includes("Privileged intents")) {
+            console.log("\n🆘 ROZWIĄZANIE:");
+            console.log("1. Wejdź na: https://discord.com/developers/applications");
+            console.log("2. Wybierz bota -> Zakładka 'Bot'");
+            console.log("3. Włącz: 'Presence Intent', 'Server Members Intent' oraz 'Message Content Intent'");
+            console.log("4. Kliknij 'Save Changes' i zrestartuj bota na Renderze.");
         }
     });
 }
 
-// Zapobieganie wyłączaniu się bota przy drobnych błędach
+// Globalne przechwytywanie błędów (zapobiega crashowaniu)
 process.on('uncaughtException', (err) => {
-    console.error('🔥 Nieobsłużony błąd:', err);
+    console.error('💥 Wykryto poważny błąd:', err.message);
 });
