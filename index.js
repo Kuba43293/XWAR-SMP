@@ -11,6 +11,15 @@ const {
     ButtonBuilder, 
     ButtonStyle 
 } = require('discord.js');
+const http = require('http');
+
+// --- SERWER WWW DLA RENDER (ROZWIĄZUJE BŁĄD PORTÓW) ---
+// Render wymaga, aby aplikacja "słuchała" na porcie, inaczej ją wyłącza
+http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.write("XWAR SMP BOT IS ONLINE");
+    res.end();
+}).listen(process.env.PORT || 10000); 
 
 const client = new Client({
     intents: [
@@ -22,7 +31,7 @@ const client = new Client({
     ],
 });
 
-// --- KONFIGURACJA UPRAWNIEŃ I RANG ---
+// --- KONFIGURACJA ---
 const authorizedUsers = [
     '1330125473719783455', 
     '1288839682544762933', 
@@ -37,7 +46,6 @@ const rankPrefixes = {
 
 const xpMap = new Map();
 
-// --- FUNKCJA STATUSU ---
 function updateStatus() {
     const guild = client.guilds.cache.first();
     if (guild) {
@@ -57,7 +65,7 @@ client.once('ready', () => {
     setInterval(updateStatus, 300000); 
 });
 
-// --- SYSTEM AUTOMATYCZNYCH NICKÓW (ZGODNIE Z MC) ---
+// --- SYSTEM AUTOMATYCZNYCH NICKÓW ---
 client.on('guildMemberUpdate', async (oldMember, newMember) => {
     if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
         for (const [roleName, prefix] of Object.entries(rankPrefixes)) {
@@ -67,7 +75,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
                     try {
                         await newMember.setNickname(`${prefix} ${newMember.user.username}`);
                     } catch (err) {
-                        console.log("Błąd: Bot potrzebuje wyższej roli do zmiany nicków!");
+                        console.log("Błąd nicku: Brak uprawnień bota.");
                     }
                 }
                 break;
@@ -76,7 +84,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
     }
 });
 
-// --- POWITANIA I AUTO-ROLA ---
+// --- POWITANIA ---
 client.on('guildMemberAdd', async member => {
     const channel = member.guild.channels.cache.find(ch => ch.name === 'witamy' || ch.name === 'powitania');
     const role = member.guild.roles.cache.find(r => r.name === 'Gracz');
@@ -89,9 +97,7 @@ client.on('guildMemberAdd', async member => {
             .setTitle('👋 NOWY GRACZ NA XWAR SMP!')
             .setThumbnail(member.user.displayAvatarURL())
             .setDescription(`Witaj **${member.user.username}**!\n\n📍 Przeczytaj: <#regulamin>\n🎮 Nasze IP: \`xwarsmp.falix.gg\``)
-            .addFields(
-                { name: '📊 Numer gracza:', value: `${member.guild.memberCount}`, inline: true }
-            )
+            .addFields({ name: '📊 Numer gracza:', value: `${member.guild.memberCount}`, inline: true })
             .setTimestamp();
         channel.send({ embeds: [welcomeEmbed] });
     }
@@ -115,7 +121,7 @@ client.on('interactionCreate', async interaction => {
         const embed = new EmbedBuilder()
             .setColor('#5865F2')
             .setTitle('🎫 POMOC TECHNICZNA')
-            .setDescription(`Witaj ${interaction.user}! Opisz tutaj swój problem, a administracja odpowie najszybciej jak to możliwe.`);
+            .setDescription(`Opisz swój problem, a administracja odpowie jak najszybciej.`);
 
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('close_ticket').setLabel('Zamknij zgłoszenie').setStyle(ButtonStyle.Danger)
@@ -127,21 +133,17 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.customId === 'close_ticket') {
         await interaction.reply("Zamykanie kanału za 5 sekund...");
-        setTimeout(() => interaction.channel.delete(), 5000);
+        setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
     }
 });
 
-// --- GŁÓWNA OBSŁUGA WIADOMOŚCI ---
+// --- OBSŁUGA KOMEND ---
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
-
-    const currentXP = xpMap.get(message.author.id) || 0;
-    xpMap.set(message.author.id, currentXP + 1);
 
     const msg = message.content.toLowerCase();
     const args = message.content.split(' ').slice(1);
 
-    // --- KOMENDA !IP (ZMIENIONA NA FALIX.GG) ---
     if (msg === '!ip') {
         const embed = new EmbedBuilder()
             .setColor('#FFD700')
@@ -149,12 +151,10 @@ client.on('messageCreate', async message => {
             .addFields(
                 { name: '🌍 ADRES IP:', value: '`xwarsmp.falix.gg`', inline: false },
                 { name: '🔌 WERSJA:', value: '`1.20.1+`', inline: true }
-            )
-            .setThumbnail(message.guild.iconURL());
+            );
         return message.reply({ embeds: [embed] });
     }
 
-    // --- KOMENDA !SAY / !OGLOSZENIE ---
     if (msg.startsWith('!say ') && authorizedUsers.includes(message.author.id)) {
         const text = message.content.slice(5);
         await message.delete();
@@ -172,61 +172,41 @@ client.on('messageCreate', async message => {
         return message.channel.send({ content: '@everyone', embeds: [embed] });
     }
 
-    // --- KOMENDA !SOCIAL ---
     if (msg === '!social') {
         const embed = new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle('📱 NASZE SOCIAL MEDIA')
-            .setDescription('Śledź nas na TikToku!')
-            .addFields({ 
-                name: 'TikTok', 
-                value: '🚀 [Zaobserwuj tutaj!](https://www.tiktok.com/@kuba06909)', 
-                inline: false 
-            });
+            .addFields({ name: 'TikTok', value: '🚀 [Zaobserwuj!](https://www.tiktok.com/@kuba06909)' });
         return message.reply({ embeds: [embed] });
     }
 
-    // --- KOMENDA !POMOC ---
     if (msg === '!pomoc') {
         const embed = new EmbedBuilder()
             .setColor('#7289DA')
-            .setTitle('✨ PANEL POMOCY XWAR SMP ✨')
+            .setTitle('✨ PANEL POMOCY ✨')
             .addFields(
-                { name: '📍 INFO', value: '`!ip`, `!dc`, `!regulamin`, `!social`', inline: false },
-                { name: '🎮 GRY', value: '`!kostka`, `!moneta`, `!avatar`, `!poziom`', inline: false },
-                { name: '🛠️ ADMIN', value: '`!setup-ticket`, `!ogloszenie`, `!clear`, `!say`', inline: false }
+                { name: '📍 INFO', value: '`!ip`, `!dc`, `!social`', inline: true },
+                { name: '🛠️ ADMIN', value: '`!setup-ticket`, `!clear`', inline: true }
             );
         return message.reply({ embeds: [embed] });
     }
 
-    // --- SETUP TICKETÓW ---
     if (msg === '!setup-ticket' && authorizedUsers.includes(message.author.id)) {
-        const embed = new EmbedBuilder()
-            .setColor('#2F3136')
-            .setTitle('📩 ZGŁOŚ PROBLEM')
-            .setDescription('Kliknij przycisk poniżej, aby otworzyć ticket i porozmawiać z administracją.');
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('open_ticket').setLabel('Otwórz Ticket').setStyle(ButtonStyle.Success)
         );
-        return message.channel.send({ embeds: [embed], components: [row] });
+        return message.channel.send({ content: 'Potrzebujesz pomocy? Kliknij przycisk!', components: [row] });
     }
 
-    // --- KOMENDA !CLEAR ---
     if (msg.startsWith('!clear ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
         const amount = parseInt(args[0]);
-        if (isNaN(amount) || amount < 1 || amount > 100) return message.reply("Podaj 1-100.");
+        if (isNaN(amount) || amount < 1 || amount > 100) return;
         await message.channel.bulkDelete(amount + 1, true);
-        const rep = await message.channel.send(`✅ Usunięto **${amount}** wiadomości.`);
-        setTimeout(() => rep.delete(), 3000);
     }
-
-    // --- KOMENDY DODATKOWE ---
-    if (msg === '!dc') return message.reply('🔗 Nasz Discord: https://discord.gg/awEJcWmM');
-    if (msg === '!ping') return message.reply(`🏓 Latencja: **${client.ws.ping}ms**`);
 });
 
 process.on('unhandledRejection', error => { console.error('BŁĄD:', error); });
 
-// Używa zmiennej DISCORD_TOKEN lub MOJ_TOCKEN z Render
+// KLUCZOWE: Używamy nazwy MOJ_TOCKEN bez spacji
 client.login(process.env.DISCORD_TOKEN || process.env.MOJ_TOCKEN);
