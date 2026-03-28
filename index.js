@@ -22,223 +22,211 @@ const client = new Client({
     ],
 });
 
-// --- KONFIGURACJA UPRAWNIEŃ (WŁAŚCICIELE + MODERACJA) ---
+// --- KONFIGURACJA UPRAWNIEŃ I RANG ---
 const authorizedUsers = [
     '1330125473719783455', 
     '1288839682544762933', 
     '1210915481691623475' 
 ];
 
-// --- MAPY DANYCH ---
+const rankPrefixes = {
+    'Właściciel': '[Właściciel]',
+    'Budowniczy': '[Budowniczy]',
+    'Gracz': '[Gracz]'
+};
+
 const xpMap = new Map();
 
-// --- FUNKCJA STATUSU (SPOŁECZNOŚĆ) ---
+// --- FUNKCJA STATUSU ---
 function updateStatus() {
     const guild = client.guilds.cache.first();
     if (guild) {
-        client.user.setActivity(`Społeczność: ${guild.memberCount}`, { 
+        client.user.setActivity(`Graczy: ${guild.memberCount} | !pomoc`, { 
             type: ActivityType.Watching 
         });
     }
 }
 
-// --- EVENT: START BOTA ---
 client.once('ready', () => {
     console.log(`==================================================`);
     console.log(`🚀 SYSTEM XWAR SMP ZOSTAŁ URUCHOMIONY`);
     console.log(`🤖 Zalogowano jako: ${client.user.tag}`);
-    console.log(`📡 Status: Oczekiwanie na graczy...`);
+    console.log(`📡 Hosting: Render.com`);
     console.log(`==================================================`);
     updateStatus();
     setInterval(updateStatus, 300000); 
 });
 
-// --- EVENT: POWITANIA I AUTO-ROLA ---
+// --- SYSTEM AUTOMATYCZNYCH NICKÓW (ZGODNIE Z MC) ---
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+    if (oldMember.roles.cache.size !== newMember.roles.cache.size) {
+        for (const [roleName, prefix] of Object.entries(rankPrefixes)) {
+            const role = newMember.roles.cache.find(r => r.name === roleName);
+            if (role) {
+                if (!newMember.displayName.startsWith(prefix)) {
+                    try {
+                        await newMember.setNickname(`${prefix} ${newMember.user.username}`);
+                    } catch (err) {
+                        console.log("Błąd: Bot potrzebuje wyższej roli do zmiany nicków!");
+                    }
+                }
+                break;
+            }
+        }
+    }
+});
+
+// --- POWITANIA I AUTO-ROLA ---
 client.on('guildMemberAdd', async member => {
     const channel = member.guild.channels.cache.find(ch => ch.name === 'witamy' || ch.name === 'powitania');
-    
-    // Nadawanie roli "Gracz" (jeśli taka istnieje)
     const role = member.guild.roles.cache.find(r => r.name === 'Gracz');
+    
     if (role) member.roles.add(role).catch(console.error);
 
     if (channel) {
         const welcomeEmbed = new EmbedBuilder()
             .setColor('#00FF00')
-            .setTitle('👋 NOWY UŻYTKOWNIK NA SERWERZE!')
+            .setTitle('👋 NOWY GRACZ NA XWAR SMP!')
             .setThumbnail(member.user.displayAvatarURL())
-            .setDescription(`Witaj **${member.user.username}** w naszej społeczności **XWAR SMP**!\n\n📍 Przeczytaj: <#regulamin>\n🎮 Nasze IP: \`Xwarsmp.aternos.me\``)
+            .setDescription(`Witaj **${member.user.username}**!\n\n📍 Przeczytaj: <#regulamin>\n🎮 Nasze IP: \`xwarsmp.falix.gg\``)
             .addFields(
-                { name: '👤 Nick:', value: `${member.user.tag}`, inline: true },
                 { name: '📊 Numer gracza:', value: `${member.guild.memberCount}`, inline: true }
             )
-            .setFooter({ text: 'Życzymy udanej przygody i wielu zwycięstw!' })
             .setTimestamp();
         channel.send({ embeds: [welcomeEmbed] });
     }
     updateStatus();
 });
 
-// --- EVENT: LOGI ADMINISTRACYJNE (USUNIĘTE WIADOMOŚCI) ---
-client.on('messageDelete', async message => {
-    if (message.author?.bot) return;
-    const logChannel = message.guild.channels.cache.find(ch => ch.name === 'logi-administracyjne');
-    if (!logChannel) return;
+// --- SYSTEM TICKETÓW ---
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
 
-    const logEmbed = new EmbedBuilder()
-        .setColor('#FF4500')
-        .setTitle('🗑️ LOG: USUNIĘTO WIADOMOŚĆ')
-        .addFields(
-            { name: 'Użytkownik:', value: `${message.author?.tag || 'Nieznany'}`, inline: true },
-            { name: 'Kanał:', value: `${message.channel}`, inline: true },
-            { name: 'Treść:', value: message.content || '*Brak treści (plik/obrazek)*' }
-        )
-        .setTimestamp();
-    logChannel.send({ embeds: [logEmbed] });
+    if (interaction.customId === 'open_ticket') {
+        const channel = await interaction.guild.channels.create({
+            name: `ticket-${interaction.user.username}`,
+            type: ChannelType.GuildText,
+            permissionOverwrites: [
+                { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+                { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages] },
+            ],
+        });
+
+        const embed = new EmbedBuilder()
+            .setColor('#5865F2')
+            .setTitle('🎫 POMOC TECHNICZNA')
+            .setDescription(`Witaj ${interaction.user}! Opisz tutaj swój problem, a administracja odpowie najszybciej jak to możliwe.`);
+
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('close_ticket').setLabel('Zamknij zgłoszenie').setStyle(ButtonStyle.Danger)
+        );
+
+        await channel.send({ embeds: [embed], components: [row] });
+        await interaction.reply({ content: `Otwarto ticket: ${channel}`, ephemeral: true });
+    }
+
+    if (interaction.customId === 'close_ticket') {
+        await interaction.reply("Zamykanie kanału za 5 sekund...");
+        setTimeout(() => interaction.channel.delete(), 5000);
+    }
 });
 
 // --- GŁÓWNA OBSŁUGA WIADOMOŚCI ---
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
 
-    // --- PROSTY SYSTEM XP ---
     const currentXP = xpMap.get(message.author.id) || 0;
     xpMap.set(message.author.id, currentXP + 1);
 
     const msg = message.content.toLowerCase();
     const args = message.content.split(' ').slice(1);
 
-    // --- KOMENDA !SAY (AUTORYZOWANI) ---
-    if (msg.startsWith('!say ')) {
-        if (!authorizedUsers.includes(message.author.id)) return;
+    // --- KOMENDA !IP (ZMIENIONA NA FALIX.GG) ---
+    if (msg === '!ip') {
+        const embed = new EmbedBuilder()
+            .setColor('#FFD700')
+            .setTitle('🎮 DANE SERWERA XWAR SMP')
+            .addFields(
+                { name: '🌍 ADRES IP:', value: '`xwarsmp.falix.gg`', inline: false },
+                { name: '🔌 WERSJA:', value: '`1.20.1+`', inline: true }
+            )
+            .setThumbnail(message.guild.iconURL());
+        return message.reply({ embeds: [embed] });
+    }
+
+    // --- KOMENDA !SAY / !OGLOSZENIE ---
+    if (msg.startsWith('!say ') && authorizedUsers.includes(message.author.id)) {
         const text = message.content.slice(5);
-        if (!text) return;
         await message.delete();
         return message.channel.send(text);
     }
 
-    // --- KOMENDA !OGLOSZENIE (AUTORYZOWANI) ---
-    if (msg.startsWith('!ogloszenie ')) {
-        if (!authorizedUsers.includes(message.author.id)) return;
+    if (msg.startsWith('!ogloszenie ') && authorizedUsers.includes(message.author.id)) {
         const text = message.content.slice(12);
         await message.delete();
-
         const embed = new EmbedBuilder()
             .setColor('#FF0000')
-            .setTitle('📢 WAŻNE OGŁOSZENIE XWAR SMP')
+            .setTitle('📢 OGŁOSZENIE XWAR SMP')
             .setDescription(text)
-            .setThumbnail(message.guild.iconURL())
-            .setFooter({ text: `Administrator: ${message.author.username}`, iconURL: message.author.displayAvatarURL() })
             .setTimestamp();
-
         return message.channel.send({ content: '@everyone', embeds: [embed] });
     }
 
-    // --- KOMENDA !SOCIAL (NIEBIESKI LINK) ---
+    // --- KOMENDA !SOCIAL ---
     if (msg === '!social') {
         const embed = new EmbedBuilder()
-            .setColor('#EE82EE')
+            .setColor('#0099ff')
             .setTitle('📱 NASZE SOCIAL MEDIA')
+            .setDescription('Śledź nas na TikToku!')
             .addFields({ 
                 name: 'TikTok', 
-                value: '🚀 [Zaobserwuj nas tutaj!](https://www.tiktok.com/@kuba06909)', 
+                value: '🚀 [Zaobserwuj tutaj!](https://www.tiktok.com/@kuba06909)', 
                 inline: false 
-            })
-            .setFooter({ text: 'Dziękujemy za każde serduszko!' });
+            });
         return message.reply({ embeds: [embed] });
     }
 
-    // --- KOMENDA !REGULAMIN (LINK DO KANAŁU) ---
-    if (msg === '!regulamin') {
-        const embed = new EmbedBuilder()
-            .setColor('#FF0000')
-            .setTitle('📜 REGULAMIN SERWERA XWAR SMP')
-            .setDescription('Pełną treść znajdziesz na kanale <#regulamin>!')
-            .addFields(
-                { name: '1️⃣ ZASADA:', value: 'Całkowity zakaz wspomagaczy i czitów.', inline: false },
-                { name: '2️⃣ ZASADA:', value: 'Szanuj budowle i mienie innych graczy.', inline: false },
-                { name: '3️⃣ ZASADA:', value: 'Zakaz toksyczności i obrażania innych.', inline: false }
-            )
-            .setTimestamp();
-        return message.reply({ embeds: [embed] });
-    }
-
-    // --- NAPRAWIONA KOMENDA !POMOC (SZCZEGÓŁOWA) ---
+    // --- KOMENDA !POMOC ---
     if (msg === '!pomoc') {
         const embed = new EmbedBuilder()
             .setColor('#7289DA')
-            .setTitle('✨ PANEL POMOCY - XWAR SMP ✨')
-            .setThumbnail(message.guild.iconURL())
-            .setDescription('Oto szczegółowa lista wszystkich dostępnych komend bota:')
+            .setTitle('✨ PANEL POMOCY XWAR SMP ✨')
             .addFields(
-                { 
-                    name: '📍 INFORMACJE OGÓLNE', 
-                    value: '`!ip` - Wyświetla dane do połączenia\n`!dc` - Stały link do Discorda\n`!regulamin` - Skrócone zasady\n`!social` - Klikalny link do TikToka',
-                    inline: false 
-                },
-                { 
-                    name: '🎮 GRY I ZABAWA', 
-                    value: '`!kostka` - Losuje liczbę 1-6\n`!moneta` - Orzeł lub Reszka\n`!avatar` - Pokazuje Twój profil\n`!poziom` - Sprawdź swoją aktywność',
-                    inline: false 
-                },
-                { 
-                    name: '🛠️ DLA ADMINISTRACJI', 
-                    value: '`!ogloszenie [tekst]` - Wysyła embed @everyone\n`!say [tekst]` - Bot pisze Twoje słowa\n`!clear [1-100]` - Usuwa wiadomości\n`!serwer_info` - Pełne statystyki DC',
-                    inline: false 
-                }
-            )
-            .setFooter({ text: 'XWAR SMP - Twoja kraina survivalu!', iconURL: client.user.displayAvatarURL() })
-            .setTimestamp();
-
+                { name: '📍 INFO', value: '`!ip`, `!dc`, `!regulamin`, `!social`', inline: false },
+                { name: '🎮 GRY', value: '`!kostka`, `!moneta`, `!avatar`, `!poziom`', inline: false },
+                { name: '🛠️ ADMIN', value: '`!setup-ticket`, `!ogloszenie`, `!clear`, `!say`', inline: false }
+            );
         return message.reply({ embeds: [embed] });
     }
 
-    // --- KOMENDA !IP ---
-    if (msg === '!ip') {
+    // --- SETUP TICKETÓW ---
+    if (msg === '!setup-ticket' && authorizedUsers.includes(message.author.id)) {
         const embed = new EmbedBuilder()
-            .setColor('#FFD700')
-            .setTitle('🎮 DANE SERWERA')
-            .addFields(
-                { name: '🌍 ADRES IP:', value: '`Xwarsmp.aternos.me`', inline: true },
-                { name: '🔌 PORT:', value: '`34899`', inline: true }
-            );
-        return message.reply({ embeds: [embed] });
+            .setColor('#2F3136')
+            .setTitle('📩 ZGŁOŚ PROBLEM')
+            .setDescription('Kliknij przycisk poniżej, aby otworzyć ticket i porozmawiać z administracją.');
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('open_ticket').setLabel('Otwórz Ticket').setStyle(ButtonStyle.Success)
+        );
+        return message.channel.send({ embeds: [embed], components: [row] });
     }
 
     // --- KOMENDA !CLEAR ---
     if (msg.startsWith('!clear ')) {
         if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) return;
         const amount = parseInt(args[0]);
-        if (isNaN(amount) || amount < 1 || amount > 100) return message.reply("Podaj liczbę od 1 do 100.");
-        
+        if (isNaN(amount) || amount < 1 || amount > 100) return message.reply("Podaj 1-100.");
         await message.channel.bulkDelete(amount + 1, true);
-        const rep = await message.channel.send(`✅ Pomyślnie usunięto **${amount}** wiadomości.`);
+        const rep = await message.channel.send(`✅ Usunięto **${amount}** wiadomości.`);
         setTimeout(() => rep.delete(), 3000);
-        return;
-    }
-
-    // --- KOMENDA !SERWER_INFO ---
-    if (msg === '!serwer_info') {
-        const embed = new EmbedBuilder()
-            .setColor('#00AAFF')
-            .setTitle(`📊 STATYSTYKI SERWERA: ${message.guild.name}`)
-            .addFields(
-                { name: '👥 Członków:', value: `${message.guild.memberCount}`, inline: true },
-                { name: '👑 Właściciel:', value: `<@${message.guild.ownerId}>`, inline: true },
-                { name: '📅 Założono:', value: `${message.guild.createdAt.toLocaleDateString()}`, inline: true }
-            );
-        return message.reply({ embeds: [embed] });
     }
 
     // --- KOMENDY DODATKOWE ---
     if (msg === '!dc') return message.reply('🔗 Nasz Discord: https://discord.gg/awEJcWmM');
     if (msg === '!ping') return message.reply(`🏓 Latencja: **${client.ws.ping}ms**`);
-    if (msg === '!poziom') return message.reply(`📊 Twój aktualny licznik wiadomości: **${xpMap.get(message.author.id) || 0}**.`);
-    if (msg === '!kostka') return message.reply(`🎲 Wynik: **${Math.floor(Math.random() * 6) + 1}**`);
-    if (msg === '!moneta') return message.reply(`🪙 Wynik: **${Math.random() < 0.5 ? 'Orzeł' : 'Reszka'}**`);
-    if (msg === '!avatar') return message.reply(message.author.displayAvatarURL({ size: 1024 }));
 });
 
-// --- ZABEZPIECZENIE PRZED CRASHEM ---
 process.on('unhandledRejection', error => { console.error('BŁĄD:', error); });
 
-client.login(process.env.DISCORD_TOKEN);
+// Używa zmiennej DISCORD_TOKEN lub MOJ_TOCKEN z Render
+client.login(process.env.DISCORD_TOKEN || process.env.MOJ_TOCKEN);
